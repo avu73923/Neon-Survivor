@@ -111,6 +111,18 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
 .pips i.on { background: var(--c); }
 .pips i.next { background: transparent; box-shadow: inset 0 0 0 1px var(--c); }
 
+.panel, .card { touch-action: pan-y; }
+.hud-note { align-self: flex-start; font: 600 11px/1 var(--font-data); letter-spacing: .14em; color: var(--lime); }
+.cores { color: var(--amber); font-variant-numeric: tabular-nums; }
+.shop { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.sitem { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; min-width: 0; padding: 14px; text-align: left; cursor: pointer; background: rgba(255, 255, 255, .04); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); }
+.sitem:hover:not(:disabled), .sitem:focus-visible { background: color-mix(in srgb, var(--c) 16%, transparent); }
+.sitem:disabled { opacity: .5; cursor: not-allowed; }
+.sitem .sname { font-weight: 700; font-size: 17px; line-height: 1.15; }
+.sitem .stxt { font-size: 13px; line-height: 1.4; color: var(--ink-dim); }
+.sitem .cost { margin-top: auto; font: 600 13px/1 var(--font-data); letter-spacing: .06em; color: var(--amber); }
+.sitem .cost.max { color: var(--lime); }
+
 @media (max-width: 520px) {
   .card { padding: 20px 18px; gap: 14px; }
   .keys dt { min-width: 0; }
@@ -139,6 +151,7 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
       </div>
     </div>
     <div class="xp" aria-hidden="true"><i id="xpFill"></i></div>
+    <div class="hud-note" id="reviveTag" hidden></div>
     <div class="bossbar" id="bossBar" hidden><span class="tag" id="bossName">OVERLORD</span><div class="bar"><i id="bossFill"></i></div></div>
     <button id="dashBtn" type="button" aria-label="Lướt"><span>LƯỚT<small>SPACE</small></span></button>
   </div>
@@ -162,6 +175,7 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
       </div>
       <div class="actions">
         <button class="btn" id="startBtn" type="button">Bắt đầu</button>
+        <button class="btn ghost" id="shopBtn" type="button">Xưởng nâng cấp · <span class="cores" id="menuCores">0</span> Lõi</button>
         <button class="btn ghost" id="menuMute" type="button">Âm thanh: bật</button>
       </div>
     </div>
@@ -170,9 +184,19 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
   <section id="levelup" class="panel" hidden aria-labelledby="t-lu">
     <div class="card wide">
       <p class="eyebrow">LÊN CẤP</p>
-      <h2 id="t-lu">Cấp <span id="luLevel">2</span>: chọn một nâng cấp</h2>
+      <h2 id="t-lu"><span id="luTitle">Cấp 2: chọn một nâng cấp</span></h2>
       <div class="choices" id="choices"></div>
       <p class="hint">Nhấn 1, 2 hoặc 3 để chọn nhanh.</p>
+    </div>
+  </section>
+
+  <section id="shop" class="panel" hidden aria-labelledby="t-shop">
+    <div class="card wide">
+      <p class="eyebrow">XƯỞNG NÂNG CẤP · GIỮ VĨNH VIỄN</p>
+      <h2 id="t-shop">Lõi năng lượng: <span class="cores" id="shopCores">0</span></h2>
+      <p class="hint">Mỗi lượt chơi cho bạn Lõi. Dùng Lõi để mua nâng cấp có hiệu lực ngay từ giây đầu tiên của trận kế tiếp.</p>
+      <div class="shop" id="shopList"></div>
+      <div class="actions"><button class="btn" id="shopBack" type="button">Quay lại</button></div>
     </div>
   </section>
 
@@ -200,9 +224,11 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
         <div class="rec"><span class="tag">HẠ GỤC</span><b id="ovKills">0</b></div>
         <div class="rec"><span class="tag">CẤP ĐỘ</span><b id="ovLevel">1</b></div>
       </div>
+      <p class="hint" id="ovCores"></p>
       <p class="hint" id="ovBest"></p>
       <div class="actions">
         <button class="btn" id="retryBtn" type="button">Chơi lại</button>
+        <button class="btn ghost" id="overShop" type="button">Xưởng nâng cấp</button>
         <button class="btn ghost" id="overMenuBtn" type="button">Menu</button>
       </div>
     </div>
@@ -242,11 +268,13 @@ function resize() {
 /* ---------- Saved records (per viewer, best effort) ---------- */
 const SAVE_KEY = 'neon-survivor-v1';
 const store = {
-  data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false },
+  data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {} },
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) { const d = JSON.parse(raw); if (d && typeof d === 'object') Object.assign(this.data, d); }
+      if (!this.data.meta || typeof this.data.meta !== 'object') this.data.meta = {};
+      if (!Number.isFinite(this.data.cores) || this.data.cores < 0) this.data.cores = 0;
     } catch (e) { /* storage unavailable: records last for this session only */ }
   },
   save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } }
@@ -363,7 +391,7 @@ function moveVec() {
 }
 
 /* ---------- Global run state ---------- */
-let state = 'menu';       // menu | play | levelup | pause | over
+let state = 'menu';       // menu | shop | play | levelup | pause | over
 let G = null;             // current run
 let choices = [];         // upgrade ids offered right now
 let overReady = false;
@@ -373,6 +401,16 @@ const els = {};
 
 /* ---------- Data ---------- */
 const MAX_ENEMIES = 190;
+// Difficulty tuning: one place to adjust the pace of a run.
+const TUNE = {
+  rate0: 0.5, rateGrow: 0.0035, rateMax: 4.2,   // enemies spawned per second = rate0 + t * rateGrow (capped)
+  lateStart: 240, lateRate: 0.006, lateHp: 1 / 150,   // extra pressure that only begins after minute 4
+  groupEvery: 160,                              // spawn group grows by one every N seconds
+  hpGrow: 1 / 220, speedGrow: 1 / 1100, speedCap: 0.3,
+  grace: 3,                                     // quiet seconds at the start of a run
+  swarmFirst: 75, swarmEvery: 60, bossFirst: 150, bossEvery: 120, bossHp: 1100, bossHpStep: 700,
+  dash: 45, shooter: 85, tank: 125, splitter: 175   // unlock times (s)
+};
 const ENEMY = {
   drift:    { r: 12, hp: 18,  sp: 72,  dmg: 8,  xp: 1,  col: COL.magenta },
   dash:     { r: 9,  hp: 11,  sp: 150, dmg: 6,  xp: 1,  col: COL.amber },
@@ -384,7 +422,7 @@ const ENEMY = {
 };
 
 const WTAB = {
-  pulse: { dmg: [10, 13.5, 13.5, 13.5, 13.5, 18, 18, 18], n: [1, 1, 2, 2, 2, 2, 3, 3], cd: [.55, .55, .55, .44, .44, .40, .40, .34], pierce: [0, 0, 0, 0, 2, 2, 2, 4] },
+  pulse: { dmg: [12, 16, 16, 16, 16, 21, 21, 21], n: [1, 1, 2, 2, 2, 2, 3, 3], cd: [.5, .5, .5, .4, .4, .36, .36, .3], pierce: [0, 0, 0, 0, 2, 2, 2, 4] },
   orbit: { n: [2, 3, 3, 4, 4, 5], dmg: [8, 8, 11, 11, 11, 15.5], rad: [64, 64, 64, 64, 77, 77], spin: [3.2, 3.2, 3.2, 4, 4, 4] },
   nova:  { cd: [5, 4.2, 4.2, 4.2, 3.4, 3.4], dmg: [24, 24, 34, 34, 34, 54], rad: [150, 150, 150, 180, 180, 215] },
   chain: { n: [3, 4, 4, 5, 5, 7], dmg: [16, 16, 22, 22, 22, 22], cd: [1.8, 1.8, 1.8, 1.8, 1.4, 1.4] }
@@ -405,27 +443,46 @@ const UPG = {
   dash:   { type: 'passive', name: 'Xung lực', max: 5, col: COL.cyan, txt: 'Hồi chiêu lướt ngắn hơn 15%.' }
 };
 const lvl = id => (UPG[id].type === 'weapon' ? G.w[id] : G.pas[id]) || 0;
-const xpFor = l => Math.round(4 + l * 3.2 + l * l * 0.35);
+
+// Permanent upgrades bought in the workshop with Cores earned from runs.
+const META = {
+  free:    { name: 'Quà khởi đầu',   max: 3, base: 90,  growth: 1.8,  col: COL.amber,   txt: 'Chọn thêm 1 nâng cấp ngay khi vào trận, mỗi cấp.' },
+  revive:  { name: 'Hồi sinh',        max: 2, base: 180, growth: 2,    col: COL.danger,  txt: 'Sống lại một lần với 50% máu và đẩy lùi địch quanh bạn, mỗi cấp.' },
+  w_nova:  { name: 'Khởi đầu: Sóng xung kích', max: 1, base: 120, growth: 1, col: COL.amber,   txt: 'Vào trận với Sóng xung kích cấp 1.' },
+  w_chain: { name: 'Khởi đầu: Tia sét',        max: 1, base: 120, growth: 1, col: COL.lime,    txt: 'Vào trận với Tia sét cấp 1.' },
+  w_orbit: { name: 'Khởi đầu: Lưỡi xoay',      max: 1, base: 120, growth: 1, col: COL.magenta, txt: 'Vào trận với Lưỡi xoay cấp 1.' },
+  vigor:   { name: 'Thể lực',         max: 8, base: 30,  growth: 1.4,  col: COL.lime,    txt: '+15 máu tối đa mỗi cấp.' },
+  power:   { name: 'Hỏa lực gốc',     max: 8, base: 45,  growth: 1.4,  col: COL.magenta, txt: '+8% sát thương mỗi cấp.' },
+  speed:   { name: 'Bộ đẩy',          max: 5, base: 40,  growth: 1.45, col: COL.cyan,    txt: '+4% tốc độ di chuyển mỗi cấp.' },
+  magnet:  { name: 'Từ trường',       max: 5, base: 30,  growth: 1.4,  col: COL.amber,   txt: '+20% tầm hút kinh nghiệm mỗi cấp.' },
+  greed:   { name: 'Tham học',        max: 6, base: 40,  growth: 1.45, col: COL.cyan,    txt: '+10% kinh nghiệm nhận được mỗi cấp.' },
+  regen:   { name: 'Tự sửa chữa',     max: 5, base: 50,  growth: 1.5,  col: COL.lime,    txt: 'Hồi thêm 0.3 máu mỗi giây mỗi cấp.' },
+  armor:   { name: 'Lớp giáp gốc',    max: 5, base: 50,  growth: 1.5,  col: COL.violet,  txt: 'Giảm 3% sát thương nhận vào mỗi cấp.' },
+  dash:    { name: 'Xung lực gốc',    max: 5, base: 35,  growth: 1.4,  col: COL.cyan,    txt: 'Hồi chiêu lướt ngắn hơn 6% mỗi cấp.' }
+};
+const META_ORDER = ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit', 'vigor', 'power', 'speed', 'magnet', 'greed', 'regen', 'armor', 'dash'];
+const xpFor = l => Math.round(3 + l * 2.4 + l * l * 0.28);
 
 function newRun() {
   return {
     t: 0, kills: 0, level: 1, xp: 0, xpNext: xpFor(1), pending: 0, bossN: 0, bossKills: 0, boss: null, newBest: false,
+    meta: Object.assign({}, store.data.meta), free: 0, revives: 0, xpMul: 1, earned: 0,
     p: { x: 0, y: 0, vx: 0, vy: 0, r: 13, hp: 100, maxHp: 100, speed: 205, inv: 0, dashT: 0, dashCd: 0, dashMax: 2.2, dx: 1, dy: 0, face: -Math.PI / 2, regen: 0, armor: 0, magnet: 95, dmgMul: 1 },
     w: { pulse: 1, orbit: 0, nova: 0, chain: 0 }, pas: {},
     wt: { pulse: 0.2, nova: 2, chain: 1, orbitAng: 0 },
     enemies: [], bullets: [], eb: [], gems: [], pick: [], parts: [], texts: [], rings: [], bolts: [], blades: [],
-    spawnT: 1, nextBoss: 80, nextSwarm: 32, shake: 0, flash: 0, camX: 0, camY: 0
+    spawnT: TUNE.grace, nextBoss: TUNE.bossFirst, nextSwarm: TUNE.swarmFirst, shake: 0, flash: 0, camX: 0, camY: 0
   };
 }
 function recompute() {
-  const p = G.p, a = G.pas;
-  p.speed = 205 * (1 + 0.10 * (a.speed || 0));
-  p.maxHp = 100 + 25 * (a.hull || 0);
-  p.magnet = 95 * (1 + 0.4 * (a.magnet || 0));
-  p.regen = 0.8 * (a.regen || 0);
-  p.armor = 0.1 * (a.armor || 0);
-  p.dmgMul = 1 + 0.12 * (a.power || 0);
-  p.dashMax = 2.2 * Math.pow(0.85, a.dash || 0);
+  const p = G.p, a = G.pas, m = G.meta;
+  p.speed = 205 * (1 + 0.10 * (a.speed || 0) + 0.04 * (m.speed || 0));
+  p.maxHp = 100 + 15 * (m.vigor || 0) + 25 * (a.hull || 0);
+  p.magnet = 95 * (1 + 0.4 * (a.magnet || 0) + 0.2 * (m.magnet || 0));
+  p.regen = 0.8 * (a.regen || 0) + 0.3 * (m.regen || 0);
+  p.armor = Math.min(0.75, 0.1 * (a.armor || 0) + 0.03 * (m.armor || 0));
+  p.dmgMul = 1 + 0.12 * (a.power || 0) + 0.08 * (m.power || 0);
+  p.dashMax = 2.2 * Math.pow(0.85, a.dash || 0) * Math.pow(0.94, m.dash || 0);
   p.hp = Math.min(p.hp, p.maxHp);
 }
 
@@ -461,10 +518,10 @@ function wpick(list) {
   return list[0][0];
 }
 function spawnEnemy(type, x, y, fixedHp) {
-  const g = G, d = ENEMY[type], hpMul = fixedHp ? 1 : 1 + g.t / 110;
+  const g = G, d = ENEMY[type], hpMul = fixedHp ? 1 : 1 + g.t * TUNE.hpGrow + Math.max(0, g.t - TUNE.lateStart) * TUNE.lateHp;
   const e = {
     type, d, x, y, r: d.r, hp: fixedHp || d.hp * hpMul, maxHp: fixedHp || d.hp * hpMul,
-    sp: d.sp * (1 + Math.min(0.4, g.t / 800)) * rnd(0.92, 1.08), dmg: d.dmg,
+    sp: d.sp * (1 + Math.min(TUNE.speedCap, g.t * TUNE.speedGrow)) * rnd(0.92, 1.08), dmg: d.dmg,
     flash: 0, ob: 0, cd: rnd(0.6, 2), state: 0, st: 0, ang: rnd(0, TAU), rot: 0, kx: 0, ky: 0, tx: 0, ty: 0, dead: false
   };
   g.enemies.push(e);
@@ -475,14 +532,14 @@ function spawnPos(extra) {
   return [G.p.x + Math.cos(a) * r, G.p.y + Math.sin(a) * r];
 }
 function swarm() {
-  const g = G, n = Math.min(18, MAX_ENEMIES + 40 - g.enemies.length), base = Math.random() * TAU, r = Math.hypot(VW, VH) / 2 + 60;
+  const g = G, n = Math.min(8 + Math.floor(g.t / 50), 16, MAX_ENEMIES + 40 - g.enemies.length), base = Math.random() * TAU, r = Math.hypot(VW, VH) / 2 + 60;
   if (n < 8) return;   // field is already crowded; skip this wave to keep the game smooth
   for (let i = 0; i < n; i++) { const a = base + i / n * TAU; spawnEnemy('drift', g.p.x + Math.cos(a) * r, g.p.y + Math.sin(a) * r); }
   banner('LŨ ĐỊCH ÙA TỚI', COL.magenta);
 }
 function spawnBoss() {
   const g = G; g.bossN++;
-  const pos = spawnPos(120), e = spawnEnemy('boss', pos[0], pos[1], 1400 + 900 * (g.bossN - 1));
+  const pos = spawnPos(120), e = spawnEnemy('boss', pos[0], pos[1], TUNE.bossHp + TUNE.bossHpStep * (g.bossN - 1));
   e.cd = 2; g.boss = e; audio.intense = true;
   audio.play('boss'); banner('OVERLORD XUẤT HIỆN', COL.danger); shake(8);
 }
@@ -490,17 +547,17 @@ function spawnTick(dt) {
   const g = G, t = g.t;
   g.spawnT -= dt;
   if (g.spawnT <= 0 && g.enemies.length < MAX_ENEMIES) {
-    g.spawnT = Math.max(0.13, 0.95 - t * 0.0042);
-    const n = 1 + Math.floor(t / 45) + (Math.random() < 0.25 ? 1 : 0);
+    const n = 1 + Math.floor(t / TUNE.groupEvery), rate = Math.min(TUNE.rateMax, TUNE.rate0 + t * TUNE.rateGrow + Math.max(0, t - TUNE.lateStart) * TUNE.lateRate);
+    g.spawnT = n / rate;
     const table = [['drift', 10]];
-    if (t > 15) table.push(['dash', 3 + t / 30]);
-    if (t > 40) table.push(['shooter', 2 + t / 60]);
-    if (t > 65) table.push(['tank', 1.5 + t / 90]);
-    if (t > 95) table.push(['splitter', 2 + t / 80]);
+    if (t > TUNE.dash) table.push(['dash', 2 + t / 40]);
+    if (t > TUNE.shooter) table.push(['shooter', 1.5 + t / 80]);
+    if (t > TUNE.tank) table.push(['tank', 1 + t / 110]);
+    if (t > TUNE.splitter) table.push(['splitter', 1.5 + t / 100]);
     for (let i = 0; i < n; i++) { const pos = spawnPos(40 + i * 12); spawnEnemy(wpick(table), pos[0], pos[1]); }
   }
-  if (t >= g.nextSwarm) { g.nextSwarm += 42; swarm(); }
-  if (t >= g.nextBoss && !g.boss) { g.nextBoss += 95; spawnBoss(); }
+  if (t >= g.nextSwarm) { g.nextSwarm += TUNE.swarmEvery; swarm(); }
+  if (t >= g.nextBoss && !g.boss) { g.nextBoss += TUNE.bossEvery; spawnBoss(); }
 }
 
 /* ---------- Damage, drops, progression ---------- */
@@ -526,7 +583,7 @@ function hurtEnemy(e, dmg, ang, push) {
 }
 function gainXp(v) {
   const g = G;
-  g.xp += v;
+  g.xp += v * g.xpMul;
   while (g.xp >= g.xpNext) { g.xp -= g.xpNext; g.level++; g.xpNext = xpFor(g.level); g.pending++; }
 }
 function dropGems(e) {
@@ -554,7 +611,7 @@ function killEnemy(e) {
   }
   if (e.type === 'boss') {
     g.boss = null; g.bossKills++; audio.intense = false;
-    g.nextBoss = Math.max(g.nextBoss, g.t + 45);   // breathing room before the next Overlord
+    g.nextBoss = Math.max(g.nextBoss, g.t + 50);   // breathing room before the next Overlord
     for (const k of ['heart', 'magnet', 'bomb']) { const a = rnd(0, TAU); g.pick.push({ kind: k, x: e.x + Math.cos(a) * 40, y: e.y + Math.sin(a) * 40, life: 30, dead: false }); }
     shake(16); banner('OVERLORD BỊ HẠ', COL.lime);
   } else dropPickup(e);
@@ -832,6 +889,16 @@ function updatePickups(dt) {
   }
 }
 
+function reviveRun() {
+  const g = G, p = g.p;
+  g.revives--;
+  p.hp = Math.max(1, p.maxHp * 0.5); p.inv = 2.5; g.flash = 0.6;
+  g.rings.push({ x: p.x, y: p.y, r: 10, max: 460, spd: 800, col: COL.cyan, dmg: 70 * p.dmgMul, hit: [], dead: false });
+  for (const b of g.eb) b.dead = true;
+  shake(10); burst(p.x, p.y, COL.cyan, 40, 320);
+  banner('HỒI SINH', COL.cyan); audio.play('level');
+}
+
 function update(dt) {
   const g = G;
   g.t += dt;
@@ -840,8 +907,8 @@ function update(dt) {
   compact(g.enemies); compact(g.bullets); compact(g.eb); compact(g.rings); compact(g.gems); compact(g.pick);
   const k = 1 - Math.exp(-10 * dt);
   g.camX += (g.p.x - g.camX) * k; g.camY += (g.p.y - g.camY) * k;
-  if (g.p.hp <= 0) { endRun(); return; }
-  if (g.pending > 0) openLevelUp();
+  if (g.p.hp <= 0) { if (g.revives > 0) reviveRun(); else { endRun(); return; } }
+  if (g.pending > 0 || g.free > 0) openLevelUp();
 }
 
 /* ---------- Rendering ---------- */
@@ -999,7 +1066,7 @@ function drawScreenOverlay(g) {
 }
 
 function render() {
-  const t = performance.now() / 1000, g = G, live = !!g && state !== 'menu';
+  const t = performance.now() / 1000, g = G, live = !!g && state !== 'menu' && state !== 'shop';
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, cv.width, cv.height);
   const cx = live ? g.camX : Math.cos(amb.t * 0.07) * 500, cy = live ? g.camY : Math.sin(amb.t * 0.05) * 400;
@@ -1041,7 +1108,7 @@ function banner(text, col) {
 }
 function hud() {
   const g = G;
-  if (!g || state === 'menu') return;
+  if (!g || state === 'menu' || state === 'shop') return;
   const p = g.p, hp = Math.max(0, p.hp) / p.maxHp;
   setText(els.timer, fmtTime(g.t), 'timer');
   setText(els.lv, String(g.level), 'lv');
@@ -1056,13 +1123,15 @@ function hud() {
     setStyle(els.bossFill, 'transform', 'scaleX(' + clamp(b.hp / b.maxHp, 0, 1).toFixed(3) + ')', 'boss');
     setText(els.bossName, 'OVERLORD ' + g.bossN, 'bossName');
   }
+  els.reviveTag.hidden = g.revives <= 0;
+  if (g.revives > 0) setText(els.reviveTag, 'HỒI SINH ×' + g.revives, 'rev');
   const ready = p.dashCd <= 0;
   els.dashBtn.style.setProperty('--cd', ready ? '1' : (1 - p.dashCd / p.dashMax).toFixed(3));
   els.dashBtn.classList.toggle('ready', ready);
   els.hurt.style.opacity = REDUCE ? String(g.flash * 0.3) : String(g.flash * 0.9);
 }
 
-const PANELS = ['menu', 'levelup', 'pause', 'over'];
+const PANELS = ['menu', 'shop', 'levelup', 'pause', 'over'];
 function showPanel(id) { for (const k of PANELS) $(k).hidden = k !== id; }
 function hidePanels() { for (const k of PANELS) $(k).hidden = true; }
 
@@ -1071,6 +1140,7 @@ function updateMenu() {
   els.recScore.textContent = String(d.best);
   els.recTime.textContent = fmtTime(d.bestTime);
   els.recKills.textContent = String(d.bestKills);
+  els.menuCores.textContent = String(d.cores);
   const label = 'Âm thanh: ' + (audio.muted ? 'tắt' : 'bật');
   els.menuMute.textContent = label;
   els.muteBtn.textContent = audio.muted ? 'TẮT' : 'ÂM';
@@ -1081,6 +1151,35 @@ function toggleMute() {
   updateMenu();
 }
 function calcScore(g) { return g.kills * 10 + Math.floor(g.t) * 4 + g.level * 60 + g.bossKills * 600; }
+function calcCores(g) { return Math.floor(g.kills * 0.8 + g.t * 0.3 + g.level * 5 + g.bossKills * 60); }
+
+/* ---------- Workshop (permanent upgrades) ---------- */
+let shopFrom = 'menu';
+const metaLv = id => (store.data.meta && store.data.meta[id]) || 0;
+const metaCost = id => Math.round(META[id].base * Math.pow(META[id].growth, metaLv(id)));
+function renderShop() {
+  els.shopCores.textContent = String(store.data.cores);
+  let html = '';
+  for (const id of META_ORDER) {
+    const m = META[id], lv = metaLv(id), maxed = lv >= m.max, cost = maxed ? 0 : metaCost(id), can = !maxed && store.data.cores >= cost;
+    let pips = '';
+    for (let k = 0; k < m.max; k++) pips += '<i class="' + (k < lv ? 'on' : k === lv ? 'next' : '') + '"></i>';
+    html += '<button class="sitem" type="button" data-id="' + id + '" style="--c:' + m.col + '"' + (can ? '' : ' disabled') + '><span class="sname">' + m.name + '</span><span class="pips">' + pips + '</span><span class="stxt">' + m.txt + '</span><span class="cost' + (maxed ? ' max' : '') + '">' + (maxed ? 'ĐÃ TỐI ĐA' : cost + ' LÕI') + '</span></button>';
+  }
+  els.shopList.innerHTML = html;
+}
+function buyMeta(id) {
+  const m = META[id]; if (!m) return;
+  const lv = metaLv(id); if (lv >= m.max) return;
+  const c = metaCost(id); if (store.data.cores < c) return;
+  store.data.cores -= c; store.data.meta[id] = lv + 1; store.save();
+  audio.play('pickup'); renderShop(); updateMenu();
+}
+function openShop(from) { shopFrom = from; state = 'shop'; renderShop(); showPanel('shop'); audio.play('ui'); }
+function closeShop() {
+  if (state !== 'shop') return;
+  state = shopFrom; showPanel(shopFrom === 'over' ? 'over' : 'menu'); updateMenu(); audio.play('ui');
+}
 
 function renderChoices() {
   const html = choices.map((id, i) => {
@@ -1106,7 +1205,12 @@ function clearStick() { const s = input.stick; s.id = -1; s.x = 0; s.y = 0; }
 function startRun() {
   if (state === 'play') return;
   audio.init();
-  G = newRun(); recompute();
+  G = newRun(); recompute(); G.p.hp = G.p.maxHp;
+  const mt = G.meta;
+  if (mt.w_nova) G.w.nova = 1;
+  if (mt.w_chain) G.w.chain = 1;
+  if (mt.w_orbit) G.w.orbit = 1;
+  G.free = mt.free || 0; G.revives = mt.revive || 0; G.xpMul = 1 + 0.1 * (mt.greed || 0);
   input.dashQ = false; clearStick(); overReady = false;
   state = 'play';
   hidePanels(); els.hud.hidden = false; resetHudCache();
@@ -1130,10 +1234,12 @@ function goMenu() {
 }
 function openLevelUp() {
   const g = G;
-  g.pending--;
+  let title;
+  if (g.free > 0) { g.free--; title = 'Quà khởi đầu: chọn một nâng cấp'; }
+  else { g.pending--; title = 'Cấp ' + (g.level - g.pending) + ': chọn một nâng cấp'; }
   choices = rollChoices();
   state = 'levelup'; clearStick();
-  els.luLevel.textContent = String(g.level - g.pending);
+  els.luTitle.textContent = title;
   renderChoices(); showPanel('levelup');
   audio.play('level');
 }
@@ -1141,15 +1247,15 @@ function chooseUpgrade(i) {
   if (state !== 'levelup' || i < 0 || i >= choices.length) return;
   applyUpgrade(choices[i]);
   audio.play('ui');
-  if (G.pending > 0) { openLevelUp(); return; }
+  if (G.pending > 0 || G.free > 0) { openLevelUp(); return; }
   state = 'play'; hidePanels();
   G.p.inv = Math.max(G.p.inv, 0.8);
 }
 function endRun() {
   const g = G, d = store.data;
   state = 'over'; clearStick(); audio.stopMusic(); audio.intense = false; audio.play('over');
-  const score = calcScore(g);
-  g.newBest = score > d.best;
+  const score = calcScore(g), earned = calcCores(g);
+  g.newBest = score > d.best; g.earned = earned; d.cores += earned;
   d.runs++; d.best = Math.max(d.best, score); d.bestTime = Math.max(d.bestTime, Math.floor(g.t));
   d.bestKills = Math.max(d.bestKills, g.kills); d.bestLevel = Math.max(d.bestLevel, g.level);
   store.save();
@@ -1164,6 +1270,7 @@ function endRun() {
     els.ovKills.textContent = String(g.kills);
     els.ovLevel.textContent = String(g.level);
     els.newBest.hidden = !g.newBest;
+    els.ovCores.textContent = '+' + earned + ' Lõi năng lượng · Tổng cộng ' + d.cores + ' Lõi. Dùng ở Xưởng nâng cấp.';
     els.ovBest.textContent = 'Điểm cao nhất: ' + d.best + ' · Số lượt đã chơi: ' + d.runs;
     els.hurt.style.opacity = '0';
     showPanel('over'); overReady = true;
@@ -1177,7 +1284,7 @@ function frame(now) {
   lastFrame = now;
   if (state === 'play') update(dt);
   else if (state === 'over') updateFx(dt);
-  else if (state === 'menu') updateAmbient(dt);
+  else if (state === 'menu' || state === 'shop') updateAmbient(dt);
   render();
   hud();
 }
@@ -1198,6 +1305,7 @@ function bind() {
         else if (c === 'KeyP' || c === 'Escape') pauseRun();
         break;
       case 'pause': if (c === 'KeyP' || c === 'Escape') resumeRun(); break;
+      case 'shop': if (c === 'Escape' || c === 'Backspace') closeShop(); break;
       case 'levelup': {
         const n = c.indexOf('Digit') === 0 ? +c.slice(5) : c.indexOf('Numpad') === 0 ? +c.slice(6) : 0;
         if (n >= 1) chooseUpgrade(n - 1);
@@ -1247,6 +1355,13 @@ function bind() {
   els.pauseMenuBtn.addEventListener('click', () => { if (state === 'pause') goMenu(); });
   els.retryBtn.addEventListener('click', () => { if (state === 'over' && overReady) startRun(); });
   els.overMenuBtn.addEventListener('click', () => { if (state === 'over' && overReady) goMenu(); });
+  els.shopBtn.addEventListener('click', () => { if (state === 'menu') openShop('menu'); });
+  els.overShop.addEventListener('click', () => { if (state === 'over' && overReady) openShop('over'); });
+  els.shopBack.addEventListener('click', () => closeShop());
+  els.shopList.addEventListener('click', e => {
+    const b = e.target && e.target.closest ? e.target.closest('.sitem') : null;
+    if (b && state === 'shop') buyMeta(b.getAttribute('data-id'));
+  });
   els.choices.addEventListener('click', e => {
     const b = e.target && e.target.closest ? e.target.closest('.choice') : null;
     if (b) chooseUpgrade(+b.getAttribute('data-i'));
@@ -1256,7 +1371,7 @@ function bind() {
 
 /* ---------- Boot ---------- */
 ['hud', 'hpFill', 'hpText', 'timer', 'lv', 'kills', 'xpFill', 'bossBar', 'bossFill', 'bossName', 'dashBtn', 'pauseBtn', 'muteBtn', 'banner', 'hurt',
- 'recScore', 'recTime', 'recKills', 'startBtn', 'menuMute', 'luLevel', 'choices', 'build', 'resumeBtn', 'restartBtn', 'pauseMenuBtn',
+ 'recScore', 'recTime', 'recKills', 'startBtn', 'menuMute', 'luTitle', 'choices', 'shopBtn', 'menuCores', 'shopCores', 'shopList', 'shopBack', 'ovCores', 'overShop', 'reviveTag', 'build', 'resumeBtn', 'restartBtn', 'pauseMenuBtn',
  'ovScore', 'ovTime', 'ovKills', 'ovLevel', 'newBest', 'ovBest', 'retryBtn', 'overMenuBtn'].forEach(id => { els[id] = $(id); });
 store.load();
 audio.muted = !!store.data.muted;
