@@ -16,6 +16,10 @@
   --amber: #ffc53d;
   --lime: #8dff6a;
   --danger: #ff4d5e;
+  --common: #9a90c4;
+  --rare: var(--cyan);
+  --epic: var(--magenta);
+  --legend: var(--amber);
   --font-display: 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
   --font-data: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
   color-scheme: dark;
@@ -29,6 +33,7 @@ body {
   -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
 }
 button { font: inherit; color: inherit; }
+[hidden] { display: none !important; }   /* panels use display:flex, so hidden must win explicitly */
 :focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 #app { position: relative; width: 100%; height: 100%; overflow: hidden; }
@@ -123,7 +128,64 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
 .sitem .cost { margin-top: auto; font: 600 13px/1 var(--font-data); letter-spacing: .06em; color: var(--amber); }
 .sitem .cost.max { color: var(--lime); }
 
+.hub { height: min(780px, 100%); overflow: hidden; gap: 12px; }
+.hub-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.wallet { display: flex; align-items: baseline; gap: 8px; }
+.wallet b { font: 600 24px/1 var(--font-data); color: var(--amber); font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid rgba(255, 255, 255, .14); }
+.tab { flex: 1 1 0; min-width: 0; padding: 12px 8px; background: transparent; border: 0; border-bottom: 3px solid transparent; font: 700 14px/1 var(--font-display); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); cursor: pointer; }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--cyan); border-bottom-color: var(--cyan); }
+#tabBody { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 2px; touch-action: pan-y; overscroll-behavior: contain; }
+.sect { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.sect-h { margin: 0; font: 600 11px/1.3 var(--font-data); letter-spacing: .18em; color: var(--ink-dim); }
+.btn.sm { padding: 12px 14px; font-size: 13px; }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.chests { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.chest-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; padding: 16px; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 12%, transparent), transparent); }
+.chest-card .cicon { width: 56px; height: 56px; color: var(--c); filter: drop-shadow(0 0 8px var(--c)); }
+.chest-card .sname { font-weight: 700; font-size: 18px; }
+.odds { display: flex; flex-wrap: wrap; gap: 6px; }
+.odds span { font: 600 11px/1 var(--font-data); padding: 4px 6px; color: var(--c); border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); }
+.open-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; }
+.gslots { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.ginv { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.gear { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; padding: 12px; text-align: left; border: 1px solid color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 8%, transparent); color: var(--ink); }
+button.gear { cursor: pointer; }
+button.gear:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.gear.r3 { box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent); }
+.gear.empty { --c: var(--ink-dim); border-style: dashed; background: transparent; opacity: .7; }
+.gicon { width: 32px; height: 32px; color: var(--c); flex: 0 0 auto; }
+.gicon.big { width: 52px; height: 52px; filter: drop-shadow(0 0 8px var(--c)); }
+.gname { font-weight: 700; font-size: 15px; line-height: 1.15; }
+.gmeta { font: 600 10px/1.3 var(--font-data); letter-spacing: .1em; color: var(--c); }
+.gmain { font: 600 12px/1.3 var(--font-data); }
+.gsubs { font: 500 11px/1.35 var(--font-data); color: var(--ink-dim); }
+.eqtag { position: absolute; top: 8px; right: 8px; font: 600 9px/1 var(--font-data); letter-spacing: .12em; color: var(--lime); }
+.gtotals { display: flex; flex-wrap: wrap; gap: 6px; }
+.inv-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.fchip { padding: 8px 11px; border: 1px solid rgba(255, 255, 255, .2); background: transparent; font: 600 11px/1 var(--font-data); letter-spacing: .06em; color: var(--ink-dim); cursor: pointer; }
+.fchip[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); background: rgba(56, 232, 255, .1); }
+.dlg { z-index: 5; background: rgba(5, 2, 14, .82); }
+.dlg .card { width: min(500px, 100%); }
+.chestwrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 0; }
+.chestAnim { width: 120px; height: 120px; color: var(--c); filter: drop-shadow(0 0 16px var(--c)); animation: chestShake .8s ease-in-out; }
+@keyframes chestShake { 0%, 100% { transform: rotate(0); } 15% { transform: rotate(-9deg) scale(1.05); } 30% { transform: rotate(9deg); } 45% { transform: rotate(-7deg); } 60% { transform: rotate(7deg); } 82% { transform: scale(1.18); } }
+.reveal { display: grid; gap: 10px; animation: pop .35s ease-out; }
+.reveal.multi { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+@keyframes pop { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: none; } }
+.gdetail { display: flex; flex-direction: column; gap: 10px; }
+.ghead { display: flex; align-items: center; gap: 14px; }
+.ghead h2 { font-size: 26px; color: var(--c); }
+.lvrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.drow { display: flex; justify-content: space-between; gap: 12px; font: 500 13px/1.3 var(--font-data); padding: 7px 0; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+.drow b { font-weight: 600; text-align: right; }
+.pos { color: var(--lime); }
+.neg { color: var(--danger); }
+
 @media (max-width: 520px) {
+  .tab { font-size: 13px; letter-spacing: .04em; padding-inline: 4px; white-space: nowrap; }
   .card { padding: 20px 18px; gap: 14px; }
   .keys dt { min-width: 0; }
   .stats .lbl { display: none; }
@@ -132,6 +194,7 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
   #banner.show { animation-duration: 1.9s; animation-name: bannerfade; }
   @keyframes bannerfade { 0% { opacity: 0; } 14% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; } }
 }
+@media (prefers-reduced-motion: reduce) { .chestAnim, .reveal { animation: none; } }
 </style>
 
 <main id="app">
@@ -173,9 +236,10 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
         <div class="rec"><span class="tag">SỐNG LÂU NHẤT</span><b id="recTime">00:00</b></div>
         <div class="rec"><span class="tag">HẠ NHIỀU NHẤT</span><b id="recKills">0</b></div>
       </div>
+      <p class="newbest" id="menuNote" role="status" hidden></p>
       <div class="actions">
         <button class="btn" id="startBtn" type="button">Bắt đầu</button>
-        <button class="btn ghost" id="shopBtn" type="button">Xưởng nâng cấp · <span class="cores" id="menuCores">0</span> Lõi</button>
+        <button class="btn ghost" id="shopBtn" type="button">Xưởng · <span class="cores" id="menuCores">0</span> Lõi</button>
         <button class="btn ghost" id="menuMute" type="button">Âm thanh: bật</button>
       </div>
     </div>
@@ -191,24 +255,28 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
   </section>
 
   <section id="shop" class="panel" hidden aria-labelledby="t-shop">
-    <div class="card wide">
-      <p class="eyebrow">XƯỞNG NÂNG CẤP · GIỮ VĨNH VIỄN</p>
-      <h2 id="t-shop">Lõi năng lượng: <span class="cores" id="shopCores">0</span></h2>
-      <p class="hint">Mỗi lượt chơi cho bạn Lõi. Dùng Lõi để mua nâng cấp có hiệu lực ngay từ giây đầu tiên của trận kế tiếp.</p>
-      <div class="shop" id="shopList"></div>
+    <div class="card wide hub">
+      <div class="hub-head">
+        <h2 id="t-shop">XƯỞNG</h2>
+        <div class="wallet"><span class="tag">LÕI</span><b id="shopCores">0</b></div>
+      </div>
+      <div class="tabs" id="tabs" role="tablist"></div>
+      <div id="tabBody"></div>
       <div class="actions"><button class="btn" id="shopBack" type="button">Quay lại</button></div>
     </div>
   </section>
+
 
   <section id="pause" class="panel" hidden aria-labelledby="t-pause">
     <div class="card">
       <p class="eyebrow">ĐÃ DỪNG</p>
       <h2 id="t-pause">TẠM DỪNG</h2>
       <div class="chips" id="build"></div>
+      <p class="hint" id="pauseCores"></p>
       <div class="actions">
         <button class="btn" id="resumeBtn" type="button">Tiếp tục</button>
         <button class="btn ghost" id="restartBtn" type="button">Chơi lại</button>
-        <button class="btn ghost" id="pauseMenuBtn" type="button">Menu</button>
+        <button class="btn ghost" id="pauseMenuBtn" type="button">Thoát và nhận Lõi</button>
       </div>
     </div>
   </section>
@@ -228,9 +296,22 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
       <p class="hint" id="ovBest"></p>
       <div class="actions">
         <button class="btn" id="retryBtn" type="button">Chơi lại</button>
-        <button class="btn ghost" id="overShop" type="button">Xưởng nâng cấp</button>
+        <button class="btn ghost" id="overShop" type="button">Xưởng</button>
         <button class="btn ghost" id="overMenuBtn" type="button">Menu</button>
       </div>
+    </div>
+  </section>
+  <section id="chestDlg" class="panel dlg" hidden aria-label="Mở rương">
+    <div class="card">
+      <div id="chestBody"></div>
+      <div class="actions" id="chestActions"></div>
+    </div>
+  </section>
+
+  <section id="itemDlg" class="panel dlg" hidden aria-label="Chi tiết trang bị">
+    <div class="card">
+      <div id="itemBody"></div>
+      <div class="actions" id="itemActions"></div>
     </div>
   </section>
 </main>
@@ -268,12 +349,15 @@ function resize() {
 /* ---------- Saved records (per viewer, best effort) ---------- */
 const SAVE_KEY = 'neon-survivor-v1';
 const store = {
-  data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {} },
+  data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {},
+          inv: [], eq: { weapon: null, armor: null, engine: null, chip: null }, nextId: 1, pending: null },
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
       if (raw) { const d = JSON.parse(raw); if (d && typeof d === 'object') Object.assign(this.data, d); }
       if (!this.data.meta || typeof this.data.meta !== 'object') this.data.meta = {};
+      if (!Array.isArray(this.data.inv)) this.data.inv = [];
+      if (!this.data.eq || typeof this.data.eq !== 'object') this.data.eq = {};
       if (!Number.isFinite(this.data.cores) || this.data.cores < 0) this.data.cores = 0;
     } catch (e) { /* storage unavailable: records last for this session only */ }
   },
@@ -458,16 +542,24 @@ const META = {
   greed:   { name: 'Tham học',        max: 6, base: 40,  growth: 1.45, col: COL.cyan,    txt: '+10% kinh nghiệm nhận được mỗi cấp.' },
   regen:   { name: 'Tự sửa chữa',     max: 5, base: 50,  growth: 1.5,  col: COL.lime,    txt: 'Hồi thêm 0.3 máu mỗi giây mỗi cấp.' },
   armor:   { name: 'Lớp giáp gốc',    max: 5, base: 50,  growth: 1.5,  col: COL.violet,  txt: 'Giảm 3% sát thương nhận vào mỗi cấp.' },
-  dash:    { name: 'Xung lực gốc',    max: 5, base: 35,  growth: 1.4,  col: COL.cyan,    txt: 'Hồi chiêu lướt ngắn hơn 6% mỗi cấp.' }
+  dash:    { name: 'Xung lực gốc',    max: 5, base: 35,  growth: 1.4,  col: COL.cyan,    txt: 'Hồi chiêu lướt ngắn hơn 6% mỗi cấp.' },
+  m_pulse: { name: 'Tinh thông: Pháo xung',      max: 5, base: 60, growth: 1.5, col: COL.cyan,    txt: 'Sát thương Pháo xung +10% mỗi cấp.' },
+  m_orbit: { name: 'Tinh thông: Lưỡi xoay',      max: 5, base: 60, growth: 1.5, col: COL.magenta, txt: 'Sát thương Lưỡi xoay +10% mỗi cấp.' },
+  m_nova:  { name: 'Tinh thông: Sóng xung kích', max: 5, base: 60, growth: 1.5, col: COL.amber,   txt: 'Sát thương Sóng xung kích +10% mỗi cấp.' },
+  m_chain: { name: 'Tinh thông: Tia sét',        max: 5, base: 60, growth: 1.5, col: COL.lime,    txt: 'Sát thương Tia sét +10% mỗi cấp.' }
 };
-const META_ORDER = ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit', 'vigor', 'power', 'speed', 'magnet', 'greed', 'regen', 'armor', 'dash'];
+const META_GROUPS = [
+  { name: 'Tinh thông vũ khí', hint: 'Tăng sát thương của từng vũ khí trong mọi trận.', ids: ['m_pulse', 'm_orbit', 'm_nova', 'm_chain'] },
+  { name: 'Khởi đầu trận', hint: '', ids: ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit'] },
+  { name: 'Chỉ số gốc', hint: '', ids: ['vigor', 'power', 'speed', 'magnet', 'greed', 'regen', 'armor', 'dash'] }
+];
 const xpFor = l => Math.round(3 + l * 2.4 + l * l * 0.28);
 
 function newRun() {
   return {
     t: 0, kills: 0, level: 1, xp: 0, xpNext: xpFor(1), pending: 0, bossN: 0, bossKills: 0, boss: null, newBest: false,
-    meta: Object.assign({}, store.data.meta), free: 0, revives: 0, xpMul: 1, earned: 0,
-    p: { x: 0, y: 0, vx: 0, vy: 0, r: 13, hp: 100, maxHp: 100, speed: 205, inv: 0, dashT: 0, dashCd: 0, dashMax: 2.2, dx: 1, dy: 0, face: -Math.PI / 2, regen: 0, armor: 0, magnet: 95, dmgMul: 1 },
+    meta: Object.assign({}, store.data.meta), gear: gearTotals(), banked: false, score: 0, free: 0, revives: 0, xpMul: 1, earned: 0,
+    p: { x: 0, y: 0, vx: 0, vy: 0, r: 13, hp: 100, maxHp: 100, speed: 205, inv: 0, dashT: 0, dashCd: 0, dashMax: 2.2, dx: 1, dy: 0, face: -Math.PI / 2, regen: 0, armor: 0, magnet: 95, dmgMul: 1, crit: 0.08 },
     w: { pulse: 1, orbit: 0, nova: 0, chain: 0 }, pas: {},
     wt: { pulse: 0.2, nova: 2, chain: 1, orbitAng: 0 },
     enemies: [], bullets: [], eb: [], gems: [], pick: [], parts: [], texts: [], rings: [], bolts: [], blades: [],
@@ -475,14 +567,16 @@ function newRun() {
   };
 }
 function recompute() {
-  const p = G.p, a = G.pas, m = G.meta;
-  p.speed = 205 * (1 + 0.10 * (a.speed || 0) + 0.04 * (m.speed || 0));
-  p.maxHp = 100 + 15 * (m.vigor || 0) + 25 * (a.hull || 0);
-  p.magnet = 95 * (1 + 0.4 * (a.magnet || 0) + 0.2 * (m.magnet || 0));
-  p.regen = 0.8 * (a.regen || 0) + 0.3 * (m.regen || 0);
-  p.armor = Math.min(0.75, 0.1 * (a.armor || 0) + 0.03 * (m.armor || 0));
-  p.dmgMul = 1 + 0.12 * (a.power || 0) + 0.08 * (m.power || 0);
-  p.dashMax = 2.2 * Math.pow(0.85, a.dash || 0) * Math.pow(0.94, m.dash || 0);
+  const p = G.p, a = G.pas, m = G.meta, e = G.gear;
+  p.speed = 205 * (1 + 0.10 * (a.speed || 0) + 0.04 * (m.speed || 0) + e.spd / 100);
+  p.maxHp = 100 + 15 * (m.vigor || 0) + 25 * (a.hull || 0) + e.hp;
+  p.magnet = 95 * (1 + 0.4 * (a.magnet || 0) + 0.2 * (m.magnet || 0) + e.mag / 100);
+  p.regen = 0.8 * (a.regen || 0) + 0.3 * (m.regen || 0) + e.reg;
+  p.armor = Math.min(0.75, 0.1 * (a.armor || 0) + 0.03 * (m.armor || 0) + e.arm / 100);
+  p.dmgMul = 1 + 0.12 * (a.power || 0) + 0.08 * (m.power || 0) + e.dmg / 100;
+  p.dashMax = 2.2 * Math.pow(0.85, a.dash || 0) * Math.pow(0.94, m.dash || 0) * Math.max(0.5, 1 - e.dsh / 100);
+  p.crit = Math.min(0.6, 0.08 + e.crit / 100);
+  G.xpMul = 1 + 0.1 * (m.greed || 0) + e.xp / 100;
   p.hp = Math.min(p.hp, p.maxHp);
 }
 
@@ -572,7 +666,7 @@ function hurtPlayer(dmg) {
 }
 function hurtEnemy(e, dmg, ang, push) {
   if (e.dead) return;
-  const crit = Math.random() < 0.08;
+  const crit = Math.random() < G.p.crit;
   if (crit) dmg *= 2;
   e.hp -= dmg; e.flash = 0.07;
   if (push && e.type !== 'boss') { e.kx += Math.cos(ang) * push; e.ky += Math.sin(ang) * push; }
@@ -648,6 +742,7 @@ function nearest(x, y, maxD2, skip) {
   }
   return best;
 }
+const mast = id => 1 + 0.1 * (G.meta['m_' + id] || 0);
 function angDiff(a, b) { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; }
 
 function updatePlayer(dt) {
@@ -687,7 +782,7 @@ function updateWeapons(dt) {
     if (wt.pulse <= 0) {
       const tgt = nearest(p.x, p.y, 560 * 560);
       if (tgt) {
-        const lv = g.w.pulse, n = at(WTAB.pulse.n, lv), dmg = at(WTAB.pulse.dmg, lv) * p.dmgMul, pierce = at(WTAB.pulse.pierce, lv);
+        const lv = g.w.pulse, n = at(WTAB.pulse.n, lv), dmg = at(WTAB.pulse.dmg, lv) * p.dmgMul * mast('pulse'), pierce = at(WTAB.pulse.pierce, lv);
         const base = Math.atan2(tgt.y - p.y, tgt.x - p.x);
         for (let i = 0; i < n; i++) {
           const a = base + (i - (n - 1) / 2) * 0.16;
@@ -700,7 +795,7 @@ function updateWeapons(dt) {
   }
   g.blades.length = 0;
   if (g.w.orbit) {
-    const lv = g.w.orbit, n = at(WTAB.orbit.n, lv), rad = at(WTAB.orbit.rad, lv), dmg = at(WTAB.orbit.dmg, lv) * p.dmgMul;
+    const lv = g.w.orbit, n = at(WTAB.orbit.n, lv), rad = at(WTAB.orbit.rad, lv), dmg = at(WTAB.orbit.dmg, lv) * p.dmgMul * mast('orbit');
     wt.orbitAng += dt * at(WTAB.orbit.spin, lv);
     for (let i = 0; i < n; i++) {
       const a = wt.orbitAng + i / n * TAU, bx = p.x + Math.cos(a) * rad, by = p.y + Math.sin(a) * rad;
@@ -720,7 +815,7 @@ function updateWeapons(dt) {
     if (wt.nova <= 0) {
       const lv = g.w.nova;
       wt.nova = at(WTAB.nova.cd, lv);
-      g.rings.push({ x: p.x, y: p.y, r: 10, max: at(WTAB.nova.rad, lv), spd: 560, col: COL.amber, dmg: at(WTAB.nova.dmg, lv) * p.dmgMul, hit: [], dead: false });
+      g.rings.push({ x: p.x, y: p.y, r: 10, max: at(WTAB.nova.rad, lv), spd: 560, col: COL.amber, dmg: at(WTAB.nova.dmg, lv) * p.dmgMul * mast('nova'), hit: [], dead: false });
       audio.play('nova'); shake(4);
     }
   }
@@ -729,7 +824,7 @@ function updateWeapons(dt) {
     if (wt.chain <= 0) {
       const tgt = nearest(p.x, p.y, 430 * 430);
       if (tgt) {
-        const lv = g.w.chain, n = at(WTAB.chain.n, lv), dmg = at(WTAB.chain.dmg, lv) * p.dmgMul;
+        const lv = g.w.chain, n = at(WTAB.chain.n, lv), dmg = at(WTAB.chain.dmg, lv) * p.dmgMul * mast('chain');
         const hits = [], pts = [{ x: p.x, y: p.y }];
         let cur = tgt, fx = p.x, fy = p.y;
         for (let i = 0; i < n && cur; i++) {
@@ -909,6 +1004,370 @@ function update(dt) {
   g.camX += (g.p.x - g.camX) * k; g.camY += (g.p.y - g.camY) * k;
   if (g.p.hp <= 0) { if (g.revives > 0) reviveRun(); else { endRun(); return; } }
   if (g.pending > 0 || g.free > 0) openLevelUp();
+}
+
+/* ---------- Equipment, chests and banking of rewards ---------- */
+const INV_CAP = 60;
+const LV_GROW = 0.15;            // each equipment level adds 15% of its level-1 value
+const SLOTS = ['weapon', 'armor', 'engine', 'chip'];
+const SLOT = {
+  weapon: { name: 'Pháo',    main: 'dmg', names: ['Pháo Plasma', 'Súng Laser Ion', 'Mũi Phóng Xung', 'Nòng Quang Tử'] },
+  armor:  { name: 'Giáp',    main: 'hp',  names: ['Giáp Nano', 'Khiên Photon', 'Vỏ Carbon Tối', 'Lớp Phủ Tế Bào'] },
+  engine: { name: 'Động cơ', main: 'spd', names: ['Động Cơ Ion', 'Bộ Đẩy Cực Quang', 'Cánh Gió Lượng Tử', 'Lò Phản Ứng Mini'] },
+  chip:   { name: 'Chip',    main: 'xp',  names: ['Chip Tinh Thể', 'Mạch Dữ Liệu', 'Lõi Phân Tích', 'Bộ Nhớ Neuron'] }
+};
+// base = value of the main line on a level-1 common item; sub lines are worth half.
+const STAT = {
+  hp:   { name: 'Máu tối đa',        base: 10 },
+  dmg:  { name: 'Sát thương',        base: 4 },
+  spd:  { name: 'Tốc độ di chuyển',  base: 3 },
+  mag:  { name: 'Tầm hút',           base: 8 },
+  reg:  { name: 'Hồi máu',           base: 0.2 },
+  arm:  { name: 'Giảm sát thương',   base: 2 },
+  dsh:  { name: 'Giảm hồi chiêu lướt', base: 3 },
+  xp:   { name: 'Kinh nghiệm',       base: 4 },
+  crit: { name: 'Chí mạng',          base: 2 }
+};
+const RAR = [
+  { name: 'Thường',      col: 'var(--common)', mul: 1,   max: 5,  subs: 0, cmul: 1,   sell: 20 },
+  { name: 'Hiếm',        col: 'var(--rare)',   mul: 1.5, max: 8,  subs: 1, cmul: 1.6, sell: 60 },
+  { name: 'Sử thi',      col: 'var(--epic)',   mul: 2.2, max: 10, subs: 2, cmul: 2.5, sell: 180 },
+  { name: 'Huyền thoại', col: 'var(--legend)', mul: 3.2, max: 12, subs: 3, cmul: 4,   sell: 500 }
+];
+const CHESTS = [
+  { name: 'Rương Thường', cost: 100,  odds: [68, 26, 5, 1],  col: 'var(--rare)' },
+  { name: 'Rương Hiếm',   cost: 350,  odds: [0, 70, 26, 4],  col: 'var(--epic)' },
+  { name: 'Rương Sử Thi', cost: 1100, odds: [0, 0, 82, 18],  col: 'var(--legend)' }
+];
+const fmtNum = (s, v) => s === 'hp' ? String(Math.round(v)) : s === 'reg' ? v.toFixed(2) + '/giây' : v.toFixed(1) + '%';
+const fmtStat = (s, v) => '+' + fmtNum(s, v);
+
+const findItem = id => (id == null ? null : store.data.inv.find(it => it.id === id) || null);
+const isEquipped = it => store.data.eq[it.slot] === it.id;
+function itemStats(it, lv) {
+  const L = lv || it.lv, out = [{ s: SLOT[it.slot].main, v: 0, main: true }];
+  for (const s of it.subs) out.push({ s, v: 0, main: false });
+  for (const a of out) a.v = STAT[a.s].base * RAR[it.rar].mul * (a.main ? 1 : 0.5) * (1 + LV_GROW * (L - 1));
+  return out;
+}
+const upgradeCost = it => Math.round(30 * RAR[it.rar].cmul * Math.pow(1.32, it.lv - 1));
+const sellValue = it => RAR[it.rar].sell + Math.floor((it.spent || 0) * 0.5);
+function gearTotals(eq) {
+  const t = { hp: 0, dmg: 0, spd: 0, mag: 0, reg: 0, arm: 0, dsh: 0, xp: 0, crit: 0 };
+  const map = eq || store.data.eq;
+  for (const slot of SLOTS) { const it = findItem(map[slot]); if (it) for (const a of itemStats(it)) t[a.s] += a.v; }
+  return t;
+}
+function rollRarity(odds) {
+  let r = Math.random() * 100;
+  for (let i = 0; i < odds.length; i++) { r -= odds[i]; if (r < 0) return i; }
+  return odds.length - 1;
+}
+function makeItem(rar) {
+  const slot = SLOTS[Math.floor(Math.random() * SLOTS.length)], main = SLOT[slot].main;
+  const pool = Object.keys(STAT).filter(s => s !== main);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
+  return { id: store.data.nextId++, slot, rar, lv: 1, nm: Math.floor(Math.random() * SLOT[slot].names.length), subs: pool.slice(0, RAR[rar].subs), spent: 0 };
+}
+function buyChest(tier, n) {
+  const c = CHESTS[tier], d = store.data;
+  if (!c || !(n >= 1)) return { ok: false, reason: 'bad' };
+  if (d.inv.length + n > INV_CAP) return { ok: false, reason: 'full' };
+  if (d.cores < c.cost * n) return { ok: false, reason: 'cores' };
+  d.cores -= c.cost * n;
+  const items = [];
+  for (let i = 0; i < n; i++) { const it = makeItem(rollRarity(c.odds)); d.inv.push(it); items.push(it); }
+  store.save();
+  return { ok: true, items };
+}
+function equipItem(id) { const it = findItem(id); if (!it) return false; store.data.eq[it.slot] = it.id; store.save(); return true; }
+function unequipItem(id) { const it = findItem(id); if (!it || !isEquipped(it)) return false; store.data.eq[it.slot] = null; store.save(); return true; }
+function upgradeItem(id) {
+  const it = findItem(id), d = store.data;
+  if (!it || it.lv >= RAR[it.rar].max) return false;
+  const cost = upgradeCost(it);
+  if (d.cores < cost) return false;
+  d.cores -= cost; it.spent += cost; it.lv++;
+  store.save();
+  return true;
+}
+function sellItem(id) {
+  const it = findItem(id), d = store.data;
+  if (!it) return 0;
+  const v = sellValue(it);
+  if (isEquipped(it)) d.eq[it.slot] = null;
+  d.inv = d.inv.filter(x => x.id !== id);
+  d.cores += v;
+  store.save();
+  return v;
+}
+function sellCommons() {
+  const d = store.data, list = d.inv.filter(it => it.rar === 0 && !isEquipped(it));
+  let v = 0;
+  for (const it of list) v += sellValue(it);
+  d.inv = d.inv.filter(it => !(it.rar === 0 && !isEquipped(it)));
+  d.cores += v; store.save();
+  return { count: list.length, value: v };
+}
+// Repairs anything odd in the saved data (older saves, hand-edited storage).
+function sanitizeGear() {
+  const d = store.data, seen = {}, ok = [];
+  for (const it of d.inv) {
+    if (!it || typeof it !== 'object' || !SLOT[it.slot] || !RAR[it.rar] || !Number.isInteger(it.id) || seen[it.id]) continue;
+    seen[it.id] = true;
+    it.lv = clamp(Math.floor(+it.lv || 1), 1, RAR[it.rar].max);
+    it.nm = clamp(Math.floor(+it.nm || 0), 0, SLOT[it.slot].names.length - 1);
+    it.spent = Math.max(0, +it.spent || 0);
+    it.subs = Array.isArray(it.subs) ? it.subs.filter(s => STAT[s] && s !== SLOT[it.slot].main).slice(0, RAR[it.rar].subs) : [];
+    ok.push(it);
+  }
+  d.inv = ok;
+  for (const s of SLOTS) { const it = findItem(d.eq[s]); if (!it || it.slot !== s) d.eq[s] = null; }
+  d.nextId = Math.max(Math.floor(+d.nextId) || 1, ok.reduce((m, it) => Math.max(m, it.id + 1), 1));
+}
+
+/* ---------- Banking a run's rewards (death, quit to menu, restart, closed tab) ---------- */
+let menuNoteText = '';
+let cpT = 0;
+function bankRun(g) {
+  if (!g || g.banked) return null;
+  g.banked = true;
+  const d = store.data, score = calcScore(g), earned = calcCores(g);
+  g.newBest = score > d.best; g.score = score; g.earned = earned;
+  d.cores += earned; d.runs++; d.pending = null;
+  d.best = Math.max(d.best, score); d.bestTime = Math.max(d.bestTime, Math.floor(g.t));
+  d.bestKills = Math.max(d.bestKills, g.kills); d.bestLevel = Math.max(d.bestLevel, g.level);
+  store.save();
+  return { score, earned };
+}
+// Saves what the current run has earned so far, so a tab that gets closed mid-run is still paid out on the next visit.
+function checkpoint() {
+  if (!G || G.banked || (state !== 'play' && state !== 'pause' && state !== 'levelup')) return;
+  store.data.pending = { cores: calcCores(G), score: calcScore(G), t: Math.floor(G.t), kills: G.kills, level: G.level };
+  store.save();
+}
+function claimPending() {
+  const d = store.data, p = d.pending;
+  d.pending = null;
+  if (!p || !(p.cores > 0) || !Number.isFinite(p.cores)) return;
+  const n = (v, def) => (Number.isFinite(+v) ? Math.max(0, +v) : def);
+  const cores = Math.floor(p.cores);
+  d.cores += cores; d.runs++;
+  d.best = Math.max(d.best, n(p.score, 0)); d.bestTime = Math.max(d.bestTime, n(p.t, 0));
+  d.bestKills = Math.max(d.bestKills, n(p.kills, 0)); d.bestLevel = Math.max(d.bestLevel, n(p.level, 1));
+  store.save();
+  menuNoteText = 'Đã nhận +' + cores + ' Lõi từ lượt chơi trước bị đóng giữa chừng.';
+}
+
+/* ---------- Workshop: Cửa hàng, Trang bị, Kỹ năng ---------- */
+const ICON = {
+  weapon: '<path d="M4 16 L19 7 L28 16 L19 25 Z"/><path d="M10 16h11"/>',
+  armor: '<path d="M16 4l10 4v8c0 6-4 10-10 12C10 26 6 22 6 16V8z"/>',
+  engine: '<path d="M16 3c6 6 9 11 5 17-1.5 2-3 4-5 9-2-5-3.5-7-5-9-4-6-1-11 5-17z"/>',
+  chip: '<rect x="9" y="9" width="14" height="14"/><path d="M13 5v4M19 5v4M13 23v4M19 23v4M5 13h4M5 19h4M23 13h4M23 19h4"/>',
+  chest: '<path d="M5 15h22v12H5z"/><path d="M5 15c0-6 4-9 11-9s11 3 11 9"/><path d="M14 19h4v4h-4z"/>'
+};
+const icon = (name, cls) => '<svg class="' + cls + '" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">' + ICON[name] + '</svg>';
+const TABS = [['store', 'Cửa hàng'], ['gear', 'Trang bị'], ['skills', 'Kỹ năng']];
+
+let shopFrom = 'menu', shopTab = 'store', gearFilter = 'all';
+let dlg = null, dlgItem = null, sellArm = null, chestState = null, chestTimer = 0;
+
+const metaLv = id => (store.data.meta && store.data.meta[id]) || 0;
+const metaCost = id => Math.round(META[id].base * Math.pow(META[id].growth, metaLv(id)));
+function pipsHtml(max, lv) {
+  let h = '';
+  for (let k = 0; k < max; k++) h += '<i class="' + (k < lv ? 'on' : k === lv ? 'next' : '') + '"></i>';
+  return h;
+}
+
+/* ----- Equipment cards ----- */
+function gearHtml(it, tag, label) {
+  const stats = itemStats(it), main = stats[0];
+  const subs = stats.slice(1).map(a => fmtStat(a.s, a.v) + ' ' + STAT[a.s].name).join(' · ');
+  const attrs = tag === 'button' ? ' type="button" data-act="inspect" data-id="' + it.id + '"' : '';
+  return '<' + tag + ' class="gear r' + it.rar + '"' + attrs + ' style="--c:' + RAR[it.rar].col + '">'
+    + (label ? '<span class="eqtag">' + label + '</span>' : '')
+    + icon(it.slot, 'gicon')
+    + '<span class="gname">' + SLOT[it.slot].names[it.nm] + '</span>'
+    + '<span class="gmeta">' + RAR[it.rar].name.toUpperCase() + ' · CẤP ' + it.lv + '/' + RAR[it.rar].max + '</span>'
+    + '<span class="gmain">' + fmtStat(main.s, main.v) + ' ' + STAT[main.s].name + '</span>'
+    + (subs ? '<span class="gsubs">' + subs + '</span>' : '')
+    + '</' + tag + '>';
+}
+
+/* ----- Tabs ----- */
+function renderStoreTab() {
+  const d = store.data;
+  let html = '<p class="hint">Mỗi rương cho 1 món trang bị ngẫu nhiên ở một trong 4 ô. Độ hiếm càng cao thì càng có nhiều dòng thuộc tính phụ và cấp nâng tối đa càng lớn.</p><div class="chests">';
+  CHESTS.forEach((c, i) => {
+    const odds = c.odds.map((o, r) => o ? '<span style="--c:' + RAR[r].col + '">' + RAR[r].name + ' ' + o + '%</span>' : '').join('');
+    const can1 = d.cores >= c.cost && d.inv.length + 1 <= INV_CAP, can5 = d.cores >= c.cost * 5 && d.inv.length + 5 <= INV_CAP;
+    html += '<div class="chest-card" style="--c:' + c.col + '">' + icon('chest', 'cicon') + '<span class="sname">' + c.name + '</span><div class="odds">' + odds + '</div>'
+      + '<div class="open-row"><button class="btn sm" type="button" data-act="chest" data-tier="' + i + '" data-n="1"' + (can1 ? '' : ' disabled') + '>Mở · ' + c.cost + ' Lõi</button>'
+      + '<button class="btn sm ghost" type="button" data-act="chest" data-tier="' + i + '" data-n="5"' + (can5 ? '' : ' disabled') + '>×5 · ' + c.cost * 5 + '</button></div></div>';
+  });
+  html += '</div><p class="hint">Túi đồ: ' + d.inv.length + '/' + INV_CAP + (d.inv.length >= INV_CAP ? '. Túi đầy, hãy bán bớt ở tab Trang bị.' : '') + '</p>';
+  return html;
+}
+function renderGearTab() {
+  const d = store.data, tot = gearTotals();
+  const chips = Object.keys(STAT).filter(s => tot[s] > 0.0001).map(s => '<span class="chip" style="--c:var(--cyan)">' + STAT[s].name + ' <b>' + fmtStat(s, tot[s]) + '</b></span>').join('');
+  let html = '<div class="sect"><p class="sect-h">TỔNG CHỈ SỐ TỪ TRANG BỊ</p><div class="gtotals">' + (chips || '<span class="hint">Chưa đeo món nào. Mở rương ở tab Cửa hàng.</span>') + '</div></div>';
+  html += '<div class="sect"><p class="sect-h">ĐANG ĐEO</p><div class="gslots">' + SLOTS.map(slot => {
+    const it = findItem(d.eq[slot]);
+    return it ? gearHtml(it, 'button', 'ĐANG ĐEO')
+      : '<div class="gear empty">' + icon(slot, 'gicon') + '<span class="gname">' + SLOT[slot].name + '</span><span class="gmeta">TRỐNG</span></div>';
+  }).join('') + '</div></div>';
+  const list = d.inv.filter(it => !isEquipped(it) && (gearFilter === 'all' || it.slot === gearFilter)).sort((a, b) => b.rar - a.rar || b.lv - a.lv || a.id - b.id);
+  const commons = d.inv.filter(it => it.rar === 0 && !isEquipped(it)), cv = commons.reduce((s, it) => s + sellValue(it), 0);
+  const filters = ['all'].concat(SLOTS).map(f => '<button class="fchip" type="button" data-act="filter" data-slot="' + f + '" aria-pressed="' + (gearFilter === f) + '">' + (f === 'all' ? 'Tất cả' : SLOT[f].name) + '</button>').join('');
+  html += '<div class="sect"><div class="inv-head"><p class="sect-h">TRONG TÚI · ' + d.inv.length + '/' + INV_CAP + '</p>'
+    + '<button class="btn sm ghost" type="button" data-act="sellcommon"' + (commons.length ? '' : ' disabled') + '>Bán hàng Thường (' + commons.length + ') · +' + cv + '</button></div><div class="filters">' + filters + '</div></div>';
+  html += list.length ? '<div class="ginv">' + list.map(it => gearHtml(it, 'button')).join('') + '</div>'
+    : '<p class="hint">' + (d.inv.length ? 'Không có món nào ở ô này.' : 'Túi trống. Mở rương ở tab Cửa hàng để nhận trang bị.') + '</p>';
+  return html;
+}
+function skillCard(id) {
+  const m = META[id], lv = metaLv(id), maxed = lv >= m.max, cost = maxed ? 0 : metaCost(id), can = !maxed && store.data.cores >= cost;
+  return '<button class="sitem" type="button" data-act="meta" data-id="' + id + '" style="--c:' + m.col + '"' + (can ? '' : ' disabled') + '><span class="sname">' + m.name + '</span><span class="pips">' + pipsHtml(m.max, lv) + '</span><span class="stxt">' + m.txt + '</span><span class="cost' + (maxed ? ' max' : '') + '">' + (maxed ? 'ĐÃ TỐI ĐA' : cost + ' LÕI') + '</span></button>';
+}
+function renderSkillsTab() {
+  return META_GROUPS.map(g => '<div class="sect"><p class="sect-h">' + g.name.toUpperCase() + '</p>' + (g.hint ? '<p class="hint">' + g.hint + '</p>' : '') + '<div class="shop">' + g.ids.map(skillCard).join('') + '</div></div>').join('');
+}
+function renderShop(reset) {
+  const keep = reset ? 0 : (els.tabBody.scrollTop || 0);
+  els.shopCores.textContent = String(store.data.cores);
+  els.tabs.innerHTML = TABS.map(t => '<button class="tab" type="button" role="tab" data-tab="' + t[0] + '" aria-selected="' + (shopTab === t[0]) + '">' + t[1] + '</button>').join('');
+  els.tabBody.innerHTML = shopTab === 'store' ? renderStoreTab() : shopTab === 'gear' ? renderGearTab() : renderSkillsTab();
+  els.tabBody.scrollTop = keep;
+  updateMenu();
+}
+function setTab(t) {
+  if (!TABS.some(x => x[0] === t) || t === shopTab) return;
+  shopTab = t; renderShop(true); audio.play('ui');
+}
+function buyMeta(id) {
+  const m = META[id]; if (!m) return;
+  const lv = metaLv(id); if (lv >= m.max) return;
+  const c = metaCost(id); if (store.data.cores < c) return;
+  store.data.cores -= c; store.data.meta[id] = lv + 1; store.save();
+  audio.play('pickup'); renderShop();
+}
+
+/* ----- Dialogs: chest opening and item details ----- */
+function closeDlg() {
+  if (chestTimer) { clearTimeout(chestTimer); chestTimer = 0; }
+  dlg = null; dlgItem = null; sellArm = null; chestState = null;
+  els.chestDlg.hidden = true; els.itemDlg.hidden = true;
+  renderShop();
+}
+function startChest(tier, n) {
+  if (chestTimer) { clearTimeout(chestTimer); chestTimer = 0; }
+  const res = buyChest(tier, n);
+  if (!res.ok) return;
+  chestState = { tier, n, items: res.items, equipped: false };
+  dlg = 'chest'; els.itemDlg.hidden = true; els.chestDlg.hidden = false;
+  els.chestBody.innerHTML = '<div class="chestwrap" style="--c:' + CHESTS[tier].col + '">' + icon('chest', 'chestAnim') + '<p class="hint">Đang mở ' + (n > 1 ? n + ' ' : '') + CHESTS[tier].name + '…</p></div>';
+  els.chestActions.innerHTML = '';
+  audio.play('ui');
+  renderShop();
+  chestTimer = setTimeout(() => revealChest(false), REDUCE ? 120 : 850);
+}
+function revealChest(silent) {
+  chestTimer = 0;
+  if (dlg !== 'chest' || !chestState) return;
+  const cs = chestState, c = CHESTS[cs.tier], d = store.data;
+  const sorted = cs.items.slice().sort((a, b) => b.rar - a.rar), best = sorted[0].rar;
+  els.chestBody.innerHTML = '<div class="reveal' + (cs.n > 1 ? ' multi' : '') + '">' + sorted.map(it => gearHtml(it, 'div')).join('') + '</div><p class="hint">' + (cs.n === 1 ? 'Đã thêm vào túi đồ.' : 'Đã thêm ' + cs.n + ' món vào túi đồ.') + '</p>';
+  const can = d.cores >= c.cost * cs.n && d.inv.length + cs.n <= INV_CAP;
+  els.chestActions.innerHTML =
+    (cs.n === 1 ? (cs.equipped ? '<button class="btn sm ghost" type="button" disabled>Đã đeo</button>' : '<button class="btn sm" type="button" data-act="equipnew">Đeo ngay</button>') : '')
+    + '<button class="btn sm' + (cs.n === 1 ? ' ghost' : '') + '" type="button" data-act="again"' + (can ? '' : ' disabled') + '>Mở tiếp · ' + c.cost * cs.n + ' Lõi</button>'
+    + '<button class="btn sm ghost" type="button" data-act="close">Đóng</button>';
+  if (!silent) audio.play(best >= 3 ? 'level' : best >= 2 ? 'pickup' : 'gem');
+}
+function openItem(id) {
+  if (!findItem(id)) return;
+  dlgItem = id; sellArm = null; dlg = 'item';
+  els.chestDlg.hidden = true; els.itemDlg.hidden = false;
+  renderItemDlg();
+}
+function renderItemDlg() {
+  const it = findItem(dlgItem), d = store.data;
+  if (!it) { closeDlg(); return; }
+  const R = RAR[it.rar], eqd = isEquipped(it), maxed = it.lv >= R.max;
+  const cur = itemStats(it), nxt = maxed ? null : itemStats(it, it.lv + 1);
+  const rows = cur.map((a, i) => '<div class="drow"><span>' + STAT[a.s].name + '</span><b>' + fmtStat(a.s, a.v) + (nxt ? ' <span class="pos">→ ' + fmtStat(a.s, nxt[i].v) + '</span>' : '') + '</b></div>').join('');
+  let cmp = '';
+  if (!eqd) {
+    const eq2 = Object.assign({}, d.eq); eq2[it.slot] = it.id;
+    const t1 = gearTotals(), t2 = gearTotals(eq2), worn = findItem(d.eq[it.slot]);
+    const lines = Object.keys(STAT).map(s => {
+      const dl = t2[s] - t1[s];
+      return Math.abs(dl) < 0.005 ? '' : '<div class="drow"><span>' + STAT[s].name + '</span><b class="' + (dl > 0 ? 'pos' : 'neg') + '">' + (dl > 0 ? '+' : '−') + fmtNum(s, Math.abs(dl)) + '</b></div>';
+    }).join('');
+    cmp = '<p class="sect-h">' + (worn ? 'SO VỚI MÓN ĐANG ĐEO (' + SLOT[worn.slot].names[worn.nm].toUpperCase() + ')' : 'NẾU ĐEO MÓN NÀY') + '</p>' + (lines || '<p class="hint">Không đổi chỉ số.</p>');
+  }
+  els.itemBody.innerHTML = '<div class="gdetail" style="--c:' + R.col + '">'
+    + '<div class="ghead">' + icon(it.slot, 'gicon big') + '<div><p class="eyebrow">' + SLOT[it.slot].name.toUpperCase() + ' · ' + R.name.toUpperCase() + '</p><h2>' + SLOT[it.slot].names[it.nm] + '</h2></div></div>'
+    + '<div class="lvrow"><span class="tag">CẤP ' + it.lv + '/' + R.max + '</span><span class="pips">' + pipsHtml(R.max, it.lv) + '</span></div>'
+    + rows + cmp + '</div>';
+  const cost = upgradeCost(it), sv = sellValue(it);
+  els.itemActions.innerHTML =
+    (eqd ? '<button class="btn sm ghost" type="button" data-act="unequip">Tháo</button>' : '<button class="btn sm" type="button" data-act="equip">Đeo</button>')
+    + (maxed ? '<button class="btn sm ghost" type="button" disabled>Đã tối đa</button>'
+      : '<button class="btn sm" type="button" data-act="upgrade"' + (d.cores >= cost ? '' : ' disabled') + '>Nâng cấp · ' + cost + '</button>')
+    + '<button class="btn sm ghost" type="button" data-act="sell">' + (sellArm === it.id ? 'Chạm lần nữa để bán · +' : 'Bán · +') + sv + '</button>'
+    + '<button class="btn sm ghost" type="button" data-act="close">Đóng</button>';
+}
+function itemAction(act) {
+  const id = dlgItem;
+  switch (act) {
+    case 'equip': if (equipItem(id)) { audio.play('pickup'); sellArm = null; renderItemDlg(); renderShop(); } break;
+    case 'unequip': if (unequipItem(id)) { audio.play('ui'); renderItemDlg(); renderShop(); } break;
+    case 'upgrade': if (upgradeItem(id)) { audio.play('level'); renderItemDlg(); renderShop(); } break;
+    case 'sell': {
+      const it = findItem(id); if (!it) return;
+      if (it.rar >= 2 && sellArm !== it.id) { sellArm = it.id; renderItemDlg(); return; }
+      sellItem(id); audio.play('gem'); closeDlg();
+      break;
+    }
+    case 'close': closeDlg(); break;
+    default: break;
+  }
+}
+function chestAction(act) {
+  const cs = chestState;
+  if (act === 'close') { closeDlg(); return; }
+  if (!cs) return;
+  if (act === 'again') startChest(cs.tier, cs.n);
+  else if (act === 'equipnew' && cs.items[0] && equipItem(cs.items[0].id)) { cs.equipped = true; audio.play('pickup'); revealChest(true); renderShop(); }
+}
+
+function openShop(from) { shopFrom = from; state = 'shop'; renderShop(true); showPanel('shop'); audio.play('ui'); }
+function closeShop() {
+  if (state !== 'shop') return;
+  closeDlg();
+  state = shopFrom; showPanel(shopFrom === 'over' ? 'over' : 'menu'); updateMenu(); audio.play('ui');
+}
+function bindShop() {
+  const act = (e, sel) => { const b = e.target && e.target.closest ? e.target.closest(sel) : null; return b; };
+  els.tabs.addEventListener('click', e => { const b = act(e, '[data-tab]'); if (b && state === 'shop') setTab(b.getAttribute('data-tab')); });
+  els.tabBody.addEventListener('click', e => {
+    const b = act(e, '[data-act]');
+    if (!b || state !== 'shop') return;
+    const a = b.getAttribute('data-act'), id = +b.getAttribute('data-id');
+    if (a === 'chest') startChest(+b.getAttribute('data-tier'), +b.getAttribute('data-n'));
+    else if (a === 'inspect') openItem(id);
+    else if (a === 'filter') { gearFilter = b.getAttribute('data-slot') || 'all'; renderShop(); }
+    else if (a === 'sellcommon') { if (sellCommons().count) audio.play('gem'); renderShop(); }
+    else if (a === 'meta') buyMeta(b.getAttribute('data-id'));
+  });
+  els.itemActions.addEventListener('click', e => { const b = act(e, '[data-act]'); if (b && state === 'shop' && dlg === 'item') itemAction(b.getAttribute('data-act')); });
+  els.chestActions.addEventListener('click', e => { const b = act(e, '[data-act]'); if (b && state === 'shop' && dlg === 'chest') chestAction(b.getAttribute('data-act')); });
+  els.itemDlg.addEventListener('click', e => { if (e.target === els.itemDlg) closeDlg(); });
+  els.chestDlg.addEventListener('click', e => { if (e.target === els.chestDlg) closeDlg(); });
 }
 
 /* ---------- Rendering ---------- */
@@ -1141,6 +1600,8 @@ function updateMenu() {
   els.recTime.textContent = fmtTime(d.bestTime);
   els.recKills.textContent = String(d.bestKills);
   els.menuCores.textContent = String(d.cores);
+  els.menuNote.textContent = menuNoteText;
+  els.menuNote.hidden = !menuNoteText;
   const label = 'Âm thanh: ' + (audio.muted ? 'tắt' : 'bật');
   els.menuMute.textContent = label;
   els.muteBtn.textContent = audio.muted ? 'TẮT' : 'ÂM';
@@ -1152,34 +1613,6 @@ function toggleMute() {
 }
 function calcScore(g) { return g.kills * 10 + Math.floor(g.t) * 4 + g.level * 60 + g.bossKills * 600; }
 function calcCores(g) { return Math.floor(g.kills * 0.8 + g.t * 0.3 + g.level * 5 + g.bossKills * 60); }
-
-/* ---------- Workshop (permanent upgrades) ---------- */
-let shopFrom = 'menu';
-const metaLv = id => (store.data.meta && store.data.meta[id]) || 0;
-const metaCost = id => Math.round(META[id].base * Math.pow(META[id].growth, metaLv(id)));
-function renderShop() {
-  els.shopCores.textContent = String(store.data.cores);
-  let html = '';
-  for (const id of META_ORDER) {
-    const m = META[id], lv = metaLv(id), maxed = lv >= m.max, cost = maxed ? 0 : metaCost(id), can = !maxed && store.data.cores >= cost;
-    let pips = '';
-    for (let k = 0; k < m.max; k++) pips += '<i class="' + (k < lv ? 'on' : k === lv ? 'next' : '') + '"></i>';
-    html += '<button class="sitem" type="button" data-id="' + id + '" style="--c:' + m.col + '"' + (can ? '' : ' disabled') + '><span class="sname">' + m.name + '</span><span class="pips">' + pips + '</span><span class="stxt">' + m.txt + '</span><span class="cost' + (maxed ? ' max' : '') + '">' + (maxed ? 'ĐÃ TỐI ĐA' : cost + ' LÕI') + '</span></button>';
-  }
-  els.shopList.innerHTML = html;
-}
-function buyMeta(id) {
-  const m = META[id]; if (!m) return;
-  const lv = metaLv(id); if (lv >= m.max) return;
-  const c = metaCost(id); if (store.data.cores < c) return;
-  store.data.cores -= c; store.data.meta[id] = lv + 1; store.save();
-  audio.play('pickup'); renderShop(); updateMenu();
-}
-function openShop(from) { shopFrom = from; state = 'shop'; renderShop(); showPanel('shop'); audio.play('ui'); }
-function closeShop() {
-  if (state !== 'shop') return;
-  state = shopFrom; showPanel(shopFrom === 'over' ? 'over' : 'menu'); updateMenu(); audio.play('ui');
-}
 
 function renderChoices() {
   const html = choices.map((id, i) => {
@@ -1210,7 +1643,8 @@ function startRun() {
   if (mt.w_nova) G.w.nova = 1;
   if (mt.w_chain) G.w.chain = 1;
   if (mt.w_orbit) G.w.orbit = 1;
-  G.free = mt.free || 0; G.revives = mt.revive || 0; G.xpMul = 1 + 0.1 * (mt.greed || 0);
+  G.free = mt.free || 0; G.revives = mt.revive || 0;
+  menuNoteText = ''; cpT = 0;
   input.dashQ = false; clearStick(); overReady = false;
   state = 'play';
   hidePanels(); els.hud.hidden = false; resetHudCache();
@@ -1221,7 +1655,22 @@ function startRun() {
 function pauseRun() {
   if (state !== 'play') return;
   state = 'pause'; clearStick(); audio.stopMusic();
-  renderBuild(); showPanel('pause');
+  renderBuild();
+  els.pauseCores.textContent = 'Thoát hoặc chơi lại bây giờ vẫn nhận +' + calcCores(G) + ' Lõi.';
+  checkpoint();
+  showPanel('pause');
+}
+function quitToMenu() {
+  if (state !== 'pause') return;
+  const r = bankRun(G);
+  menuNoteText = r ? 'Đã nhận +' + r.earned + ' Lõi từ lượt vừa rồi (điểm ' + r.score + ').' : '';
+  goMenu();
+}
+function restartFromPause() {
+  if (state !== 'pause') return;
+  const r = bankRun(G);
+  state = 'menu'; startRun();
+  if (r) banner('+' + r.earned + ' LÕI ĐÃ NHẬN', COL.amber);
 }
 function resumeRun() {
   if (state !== 'pause') return;
@@ -1254,11 +1703,7 @@ function chooseUpgrade(i) {
 function endRun() {
   const g = G, d = store.data;
   state = 'over'; clearStick(); audio.stopMusic(); audio.intense = false; audio.play('over');
-  const score = calcScore(g), earned = calcCores(g);
-  g.newBest = score > d.best; g.earned = earned; d.cores += earned;
-  d.runs++; d.best = Math.max(d.best, score); d.bestTime = Math.max(d.bestTime, Math.floor(g.t));
-  d.bestKills = Math.max(d.bestKills, g.kills); d.bestLevel = Math.max(d.bestLevel, g.level);
-  store.save();
+  const res = bankRun(g) || { score: g.score, earned: g.earned }, score = res.score, earned = res.earned;
   g.shake = REDUCE ? 3 : 18; g.flash = 1;
   burst(g.p.x, g.p.y, COL.cyan, 50, 360);
   els.hud.hidden = true;
@@ -1270,7 +1715,7 @@ function endRun() {
     els.ovKills.textContent = String(g.kills);
     els.ovLevel.textContent = String(g.level);
     els.newBest.hidden = !g.newBest;
-    els.ovCores.textContent = '+' + earned + ' Lõi năng lượng · Tổng cộng ' + d.cores + ' Lõi. Dùng ở Xưởng nâng cấp.';
+    els.ovCores.textContent = '+' + earned + ' Lõi năng lượng · Tổng cộng ' + d.cores + ' Lõi. Dùng ở Xưởng để mua rương, đeo trang bị và nâng cấp kỹ năng.';
     els.ovBest.textContent = 'Điểm cao nhất: ' + d.best + ' · Số lượt đã chơi: ' + d.runs;
     els.hurt.style.opacity = '0';
     showPanel('over'); overReady = true;
@@ -1282,7 +1727,7 @@ function frame(now) {
   requestAnimationFrame(frame);
   const dt = clamp((now - lastFrame) / 1000 || 0.016, 0.001, 0.05);
   lastFrame = now;
-  if (state === 'play') update(dt);
+  if (state === 'play') { update(dt); cpT += dt; if (cpT > 12) { cpT = 0; checkpoint(); } }
   else if (state === 'over') updateFx(dt);
   else if (state === 'menu' || state === 'shop') updateAmbient(dt);
   render();
@@ -1305,7 +1750,7 @@ function bind() {
         else if (c === 'KeyP' || c === 'Escape') pauseRun();
         break;
       case 'pause': if (c === 'KeyP' || c === 'Escape') resumeRun(); break;
-      case 'shop': if (c === 'Escape' || c === 'Backspace') closeShop(); break;
+      case 'shop': if (c === 'Escape' || c === 'Backspace') { if (dlg) closeDlg(); else closeShop(); } break;
       case 'levelup': {
         const n = c.indexOf('Digit') === 0 ? +c.slice(5) : c.indexOf('Numpad') === 0 ? +c.slice(6) : 0;
         if (n >= 1) chooseUpgrade(n - 1);
@@ -1317,7 +1762,8 @@ function bind() {
   });
   window.addEventListener('keyup', e => { input.keys[e.code] = false; });
   window.addEventListener('blur', () => { for (const k in input.keys) input.keys[k] = false; clearStick(); if (state === 'play') pauseRun(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') pauseRun(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'play') pauseRun(); else checkpoint(); } });
+  window.addEventListener('pagehide', () => checkpoint());
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', resize);
   if (window.ResizeObserver) { try { new ResizeObserver(resize).observe($('app')); } catch (e) { /* ignore */ } }
@@ -1351,17 +1797,14 @@ function bind() {
   els.menuMute.addEventListener('click', () => toggleMute());
   els.startBtn.addEventListener('click', () => { if (state === 'menu') startRun(); });
   els.resumeBtn.addEventListener('click', () => resumeRun());
-  els.restartBtn.addEventListener('click', () => { if (state === 'pause') { state = 'menu'; startRun(); } });
-  els.pauseMenuBtn.addEventListener('click', () => { if (state === 'pause') goMenu(); });
+  els.restartBtn.addEventListener('click', () => restartFromPause());
+  els.pauseMenuBtn.addEventListener('click', () => quitToMenu());
   els.retryBtn.addEventListener('click', () => { if (state === 'over' && overReady) startRun(); });
   els.overMenuBtn.addEventListener('click', () => { if (state === 'over' && overReady) goMenu(); });
   els.shopBtn.addEventListener('click', () => { if (state === 'menu') openShop('menu'); });
   els.overShop.addEventListener('click', () => { if (state === 'over' && overReady) openShop('over'); });
   els.shopBack.addEventListener('click', () => closeShop());
-  els.shopList.addEventListener('click', e => {
-    const b = e.target && e.target.closest ? e.target.closest('.sitem') : null;
-    if (b && state === 'shop') buyMeta(b.getAttribute('data-id'));
-  });
+  bindShop();
   els.choices.addEventListener('click', e => {
     const b = e.target && e.target.closest ? e.target.closest('.choice') : null;
     if (b) chooseUpgrade(+b.getAttribute('data-i'));
@@ -1371,9 +1814,11 @@ function bind() {
 
 /* ---------- Boot ---------- */
 ['hud', 'hpFill', 'hpText', 'timer', 'lv', 'kills', 'xpFill', 'bossBar', 'bossFill', 'bossName', 'dashBtn', 'pauseBtn', 'muteBtn', 'banner', 'hurt',
- 'recScore', 'recTime', 'recKills', 'startBtn', 'menuMute', 'luTitle', 'choices', 'shopBtn', 'menuCores', 'shopCores', 'shopList', 'shopBack', 'ovCores', 'overShop', 'reviveTag', 'build', 'resumeBtn', 'restartBtn', 'pauseMenuBtn',
+ 'recScore', 'recTime', 'recKills', 'startBtn', 'menuMute', 'luTitle', 'choices', 'shopBtn', 'menuCores', 'menuNote', 'pauseCores', 'shopCores', 'tabs', 'tabBody', 'chestDlg', 'chestBody', 'chestActions', 'itemDlg', 'itemBody', 'itemActions', 'shopBack', 'ovCores', 'overShop', 'reviveTag', 'build', 'resumeBtn', 'restartBtn', 'pauseMenuBtn',
  'ovScore', 'ovTime', 'ovKills', 'ovLevel', 'newBest', 'ovBest', 'retryBtn', 'overMenuBtn'].forEach(id => { els[id] = $(id); });
 store.load();
+sanitizeGear();
+claimPending();
 audio.muted = !!store.data.muted;
 resize();
 bind();
