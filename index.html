@@ -111,6 +111,11 @@ kbd { font: 600 11px/1 var(--font-data); padding: 5px 7px; border: 1px solid rgb
 .choice .cname { font-weight: 700; font-size: 20px; line-height: 1.1; }
 .choice .ctxt { font-size: 14px; line-height: 1.4; color: var(--ink-dim); }
 .choice .key { position: absolute; top: 10px; right: 12px; font: 600 12px/1 var(--font-data); color: var(--ink-dim); }
+.choice.evo { background: linear-gradient(180deg, rgba(255, 197, 61, .16), rgba(255, 63, 180, .08)); border-color: var(--amber); box-shadow: 0 0 26px rgba(255, 197, 61, .3); animation: evoGlow 1.4s ease-in-out infinite alternate; }
+.choice.evo .kind { color: var(--amber); }
+.choice.evo .cname { color: #fff1b8; }
+@keyframes evoGlow { from { box-shadow: 0 0 14px rgba(255, 197, 61, .2); } to { box-shadow: 0 0 34px rgba(255, 197, 61, .5); } }
+.chip.evo { background: rgba(255, 197, 61, .1); }
 .pips { display: flex; gap: 4px; flex-wrap: wrap; }
 .pips i { width: 14px; height: 6px; background: rgba(255, 255, 255, .15); }
 .pips i.on { background: var(--c); }
@@ -184,6 +189,28 @@ button.gear:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
 .pos { color: var(--lime); }
 .neg { color: var(--danger); }
 
+
+/* Accounts and admin */
+input, select { -webkit-user-select: text; user-select: text; touch-action: manipulation; }
+.acct-status { margin: 0; padding: 10px 12px; font: 600 13px/1.4 var(--font-data); letter-spacing: .04em; border-left: 3px solid var(--ink-dim); background: rgba(255, 255, 255, .04); }
+.acct-status[data-s="synced"] { border-left-color: var(--lime); color: var(--lime); }
+.acct-status[data-s="pending"], .acct-status[data-s="syncing"], .acct-status[data-s="connecting"] { border-left-color: var(--cyan); color: var(--cyan); }
+.acct-status[data-s="conflict"], .acct-status[data-s="readonly"] { border-left-color: var(--amber); color: var(--amber); }
+.acct-status[data-s="error"] { border-left-color: var(--danger); color: var(--danger); }
+.conf { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1px solid color-mix(in srgb, var(--amber) 55%, transparent); background: color-mix(in srgb, var(--amber) 7%, transparent); }
+.conf-row { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.conf-row b { font: 600 14px/1.4 var(--font-data); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.field, .arow input { font: 600 15px/1 var(--font-data); color: var(--ink); background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .24); padding: 12px; min-width: 0; }
+.field { width: 100%; }
+.field:focus-visible, .arow input:focus-visible { border-color: var(--cyan); outline: 2px solid var(--cyan); outline-offset: 1px; }
+select.field option { color: #0b0716; background: #f3eeff; }
+#adminForm { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 16px; padding-right: 2px; touch-action: pan-y; overscroll-behavior: contain; }
+.arow { display: grid; grid-template-columns: minmax(0, 1fr) 7.5em; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid rgba(255, 255, 255, .08); }
+.arow span { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 15px; line-height: 1.2; }
+.arow small { font: 500 11px/1.2 var(--font-data); color: var(--ink-dim); }
+.arow input { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
+#adminMsg[data-bad="1"] { color: var(--danger); }
+
 @media (max-width: 520px) {
   .tab { font-size: 13px; letter-spacing: .04em; padding-inline: 4px; white-space: nowrap; }
   .card { padding: 20px 18px; gap: 14px; }
@@ -194,7 +221,7 @@ button.gear:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
   #banner.show { animation-duration: 1.9s; animation-name: bannerfade; }
   @keyframes bannerfade { 0% { opacity: 0; } 14% { opacity: 1; } 78% { opacity: 1; } 100% { opacity: 0; } }
 }
-@media (prefers-reduced-motion: reduce) { .chestAnim, .reveal { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chestAnim, .reveal, .choice.evo { animation: none; } }
 </style>
 
 <main id="app">
@@ -240,6 +267,7 @@ button.gear:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
       <div class="actions">
         <button class="btn" id="startBtn" type="button">Bắt đầu</button>
         <button class="btn ghost" id="shopBtn" type="button">Xưởng · <span class="cores" id="menuCores">0</span> Lõi</button>
+        <button class="btn ghost" id="acctBtn" type="button">Tài khoản · <span id="acctLbl">Khách</span></button>
         <button class="btn ghost" id="menuMute" type="button">Âm thanh: bật</button>
       </div>
     </div>
@@ -301,6 +329,49 @@ button.gear:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
       </div>
     </div>
   </section>
+  <section id="acct" class="panel" hidden aria-labelledby="t-acct">
+    <div class="card">
+      <p class="eyebrow">TÀI KHOẢN</p>
+      <h2 id="t-acct"><span id="acctName">Khách</span></h2>
+      <p class="acct-status" id="acctStatus" role="status" data-s="local"></p>
+      <p class="lead" id="acctText"></p>
+      <p class="hint" id="acctRole" hidden></p>
+      <div class="conf" id="acctConflict" hidden>
+        <p class="sect-h">HAI BẢN LƯU KHÁC NHAU</p>
+        <div class="conf-row"><span class="tag">TRÊN TÀI KHOẢN</span><b id="confCloud"></b></div>
+        <div class="conf-row"><span class="tag">TRÊN MÁY NÀY</span><b id="confLocal"></b></div>
+        <div class="actions">
+          <button class="btn sm" id="confUseCloud" type="button">Dùng bản trên tài khoản</button>
+          <button class="btn sm ghost" id="confUseLocal" type="button">Dùng bản trên máy này</button>
+        </div>
+        <p class="hint">Bản không được chọn sẽ bị ghi đè. Chưa chọn thì tiến trình chỉ lưu trên máy này.</p>
+      </div>
+      <div class="actions">
+        <button class="btn" id="acctBack" type="button">Quay lại</button>
+        <button class="btn ghost" id="syncBtn" type="button" hidden>Đồng bộ ngay</button>
+        <button class="btn ghost" id="adminBtn" type="button" hidden>Quản trị</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="admin" class="panel" hidden aria-labelledby="t-admin">
+    <div class="card wide hub">
+      <div class="hub-head">
+        <h2 id="t-admin">QUẢN TRỊ</h2>
+        <span class="tag" id="adminWho"></span>
+      </div>
+      <label class="sect-h" for="adminPick">NGƯỜI CHƠI</label>
+      <select id="adminPick" class="field"></select>
+      <div id="adminForm"></div>
+      <p class="hint" id="adminMsg" role="status" data-bad="0"></p>
+      <div class="actions">
+        <button class="btn sm" id="adminApply" type="button">Gửi thay đổi</button>
+        <button class="btn sm ghost" id="adminMax" type="button">Tối đa hết</button>
+        <button class="btn sm ghost" id="adminBack" type="button">Quay lại</button>
+      </div>
+    </div>
+  </section>
+
   <section id="chestDlg" class="panel dlg" hidden aria-label="Mở rương">
     <div class="card">
       <div id="chestBody"></div>
@@ -350,7 +421,8 @@ function resize() {
 const SAVE_KEY = 'neon-survivor-v1';
 const store = {
   data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {},
-          inv: [], eq: { weapon: null, armor: null, engine: null, chip: null }, nextId: 1, pending: null },
+          inv: [], eq: { weapon: null, armor: null, engine: null, chip: null }, nextId: 1, pending: null,
+          adminRev: 0, link: null },
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
@@ -359,9 +431,12 @@ const store = {
       if (!Array.isArray(this.data.inv)) this.data.inv = [];
       if (!this.data.eq || typeof this.data.eq !== 'object') this.data.eq = {};
       if (!Number.isFinite(this.data.cores) || this.data.cores < 0) this.data.cores = 0;
+      if (!Number.isFinite(this.data.adminRev) || this.data.adminRev < 0) this.data.adminRev = 0;
+      const L = this.data.link; if (!L || typeof L !== 'object' || typeof L.uid !== 'string' || typeof L.h !== 'string') this.data.link = null;
     } catch (e) { /* storage unavailable: records last for this session only */ }
   },
-  save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } }
+  onSave: null,   // set by the account module: schedules a cloud upload when the saved progress changed
+  save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.data)); } catch (e) { /* ignore */ } if (this.onSave) this.onSave(); }
 };
 
 /* ---------- Audio: synthesized effects and a small bass loop ---------- */
@@ -414,7 +489,7 @@ const audio = {
   },
   play(name) {
     if (!this.ctx || this.muted) return;
-    const now = performance.now(), gap = { shoot: 70, hit: 45, kill: 40, gem: 45, chain: 90 }[name] || 0;
+    const now = performance.now(), gap = { shoot: 70, hit: 45, kill: 40, gem: 45, chain: 90, drone: 90 }[name] || 0;
     if (gap) { if (now - (this.last[name] || 0) < gap) return; this.last[name] = now; }
     switch (name) {
       case 'shoot': this.tone(780, 300, 0.07, 'square', 0.045); break;
@@ -426,6 +501,8 @@ const audio = {
       case 'hurt': this.tone(170, 50, 0.25, 'sawtooth', 0.16); this.noise(0.15, 0.18, 500); break;
       case 'nova': this.tone(90, 40, 0.45, 'sine', 0.28); this.noise(0.3, 0.16, 300); break;
       case 'chain': this.tone(1400, 300, 0.12, 'sawtooth', 0.05); break;
+      case 'drone': this.tone(1250, 720, 0.045, 'square', 0.022); break;
+      case 'evolve': this.tone(180, 1400, 0.7, 'sawtooth', 0.12); this.tone(440, 440, 0.5, 'triangle', 0.1, 0.1); this.tone(660, 660, 0.5, 'triangle', 0.1, 0.25); this.tone(880, 880, 0.7, 'triangle', 0.11, 0.4); this.noise(0.35, 0.14, 2500, 0.05); break;
       case 'pickup': this.tone(600, 600, 0.08, 'triangle', 0.1); this.tone(800, 800, 0.08, 'triangle', 0.1, 0.07); this.tone(1100, 1100, 0.14, 'triangle', 0.1, 0.14); break;
       case 'bomb': this.noise(0.6, 0.32, 200); this.tone(70, 30, 0.6, 'sine', 0.3); break;
       case 'boss': this.tone(70, 52, 1.0, 'sawtooth', 0.16); this.tone(105, 78, 1.0, 'sawtooth', 0.1); break;
@@ -509,7 +586,16 @@ const WTAB = {
   pulse: { dmg: [12, 16, 16, 16, 16, 21, 21, 21], n: [1, 1, 2, 2, 2, 2, 3, 3], cd: [.5, .5, .5, .4, .4, .36, .36, .3], pierce: [0, 0, 0, 0, 2, 2, 2, 4] },
   orbit: { n: [2, 3, 3, 4, 4, 5], dmg: [8, 8, 11, 11, 11, 15.5], rad: [64, 64, 64, 64, 77, 77], spin: [3.2, 3.2, 3.2, 4, 4, 4] },
   nova:  { cd: [5, 4.2, 4.2, 4.2, 3.4, 3.4], dmg: [24, 24, 34, 34, 34, 54], rad: [150, 150, 150, 180, 180, 215] },
-  chain: { n: [3, 4, 4, 5, 5, 7], dmg: [16, 16, 22, 22, 22, 22], cd: [1.8, 1.8, 1.8, 1.8, 1.4, 1.4] }
+  chain: { n: [3, 4, 4, 5, 5, 7], dmg: [16, 16, 22, 22, 22, 22], cd: [1.8, 1.8, 1.8, 1.8, 1.4, 1.4] },
+  drone: { n: [1, 2, 2, 3, 4], dmg: [6, 6, 8.5, 8.5, 10], cd: [.75, .65, .5, .5, .4] }
+};
+// Super (evolved) versions. They replace the level table once the weapon has evolved (see EVO.at).
+const SUP = {
+  pulse: { n: 5, dmg: 28, cd: 0.24, pierce: 6, r: 7, speed: 640, spread: 0.13 },
+  orbit: { n: 8, dmg: 34, rad: 118, spin: 6, scale: 2.2, cool: 0.24 },
+  nova:  { cd: 2.6, dmg: 97, rad: 340, echoDelay: 0.4, echoMul: 0.6 },
+  chain: { n: 12, dmg: 37, cd: 0.9, hop: 260, reach: 520 },
+  drone: { n: 7, dmg: 18, cd: 0.26, pierce: 2, range: 520, orbit: 58 }
 };
 const at = (arr, lv) => arr[Math.min(arr.length, Math.max(1, lv)) - 1];
 
@@ -517,6 +603,7 @@ const UPG = {
   pulse:  { type: 'weapon', name: 'Pháo xung', max: 8, col: COL.cyan, txt: ['Bắn tự động vào kẻ gần nhất.', 'Sát thương +35%.', 'Thêm 1 đạn song song.', 'Tốc độ bắn +20%.', 'Đạn xuyên thêm 2 mục tiêu.', 'Sát thương +35%, bắn nhanh hơn.', 'Thêm 1 đạn song song.', 'Đạn xuyên thêm 4 mục tiêu, bắn nhanh hơn.'] },
   orbit:  { type: 'weapon', name: 'Lưỡi xoay', max: 6, col: COL.magenta, txt: ['Hai lưỡi dao xoay quanh bạn và chặn được đạn địch.', 'Thêm 1 lưỡi.', 'Sát thương +40%.', 'Thêm 1 lưỡi, xoay nhanh hơn.', 'Bán kính xoay +20%.', 'Thêm 1 lưỡi, sát thương +40%.'] },
   nova:   { type: 'weapon', name: 'Sóng xung kích', max: 6, col: COL.amber, txt: ['Phát sóng đẩy lùi kẻ địch quanh bạn.', 'Hồi chiêu nhanh hơn.', 'Sát thương +40%.', 'Phạm vi +20%.', 'Hồi chiêu nhanh hơn.', 'Sát thương +60%, phạm vi +20%.'] },
+  drone:  { type: 'weapon', name: 'Drone hỗ trợ', max: 5, col: COL.violet, txt: ['Một drone bay quanh bạn và tự bắn kẻ địch gần nhất.', 'Thêm 1 drone, bắn nhanh hơn.', 'Sát thương +40%, bắn nhanh hơn.', 'Thêm 1 drone.', 'Thêm 1 drone, sát thương +18%, bắn nhanh hơn.'] },
   chain:  { type: 'weapon', name: 'Tia sét', max: 6, col: COL.lime, txt: ['Tia sét giật qua 3 kẻ địch.', 'Giật thêm 1 mục tiêu.', 'Sát thương +40%.', 'Giật thêm 1 mục tiêu.', 'Hồi chiêu nhanh hơn.', 'Giật thêm 2 mục tiêu.'] },
   speed:  { type: 'passive', name: 'Động cơ phụ', max: 5, col: COL.cyan, txt: 'Tốc độ di chuyển +10%.' },
   hull:   { type: 'passive', name: 'Giáp thân', max: 5, col: COL.lime, txt: 'Máu tối đa +25 và hồi 25 máu.' },
@@ -527,6 +614,15 @@ const UPG = {
   dash:   { type: 'passive', name: 'Xung lực', max: 5, col: COL.cyan, txt: 'Hồi chiêu lướt ngắn hơn 15%.' }
 };
 const lvl = id => (UPG[id].type === 'weapon' ? G.w[id] : G.pas[id]) || 0;
+// Evolution: a weapon can turn Super once it reaches `at` (a little below its maximum, so the payoff comes within a few minutes).
+// Texts quote absolute values, which stay true whatever level the weapon had when it evolved.
+const EVO = {
+  pulse: { at: 6, name: 'Pháo Siêu Xung', col: COL.cyan, txt: 'Bắn chùm 5 đạn to, xuyên 6 mục tiêu, 28 sát thương mỗi viên, một loạt mỗi 0,24 giây.' },
+  orbit: { at: 5, name: 'Bão Lưỡi', col: COL.magenta, txt: '8 lưỡi to gấp đôi, xoay nhanh hơn, vòng xoay rộng hơn, 34 sát thương mỗi nhát chém.' },
+  nova:  { at: 5, name: 'Siêu Tân Tinh', col: COL.amber, txt: 'Sóng nổ rộng 340, 97 sát thương, hồi chiêu 2,6 giây và nổ thêm một đợt dội lại.' },
+  chain: { at: 5, name: 'Thiên Lôi', col: COL.lime, txt: 'Sét giật qua 12 mục tiêu, tầm giật xa hơn, 37 sát thương mỗi nhát, giáng mỗi 0,9 giây.' },
+  drone: { at: 5, name: 'Hạm Đội Drone', col: COL.violet, txt: '7 drone lớn bắn mỗi 0,26 giây, đạn xuyên 2 mục tiêu, 18 sát thương mỗi viên.' }
+};
 
 // Permanent upgrades bought in the workshop with Cores earned from runs.
 const META = {
@@ -535,6 +631,7 @@ const META = {
   w_nova:  { name: 'Khởi đầu: Sóng xung kích', max: 1, base: 120, growth: 1, col: COL.amber,   txt: 'Vào trận với Sóng xung kích cấp 1.' },
   w_chain: { name: 'Khởi đầu: Tia sét',        max: 1, base: 120, growth: 1, col: COL.lime,    txt: 'Vào trận với Tia sét cấp 1.' },
   w_orbit: { name: 'Khởi đầu: Lưỡi xoay',      max: 1, base: 120, growth: 1, col: COL.magenta, txt: 'Vào trận với Lưỡi xoay cấp 1.' },
+  w_drone: { name: 'Khởi đầu: Drone',          max: 1, base: 120, growth: 1, col: COL.violet,  txt: 'Vào trận với Drone hỗ trợ cấp 1.' },
   vigor:   { name: 'Thể lực',         max: 8, base: 30,  growth: 1.4,  col: COL.lime,    txt: '+15 máu tối đa mỗi cấp.' },
   power:   { name: 'Hỏa lực gốc',     max: 8, base: 45,  growth: 1.4,  col: COL.magenta, txt: '+8% sát thương mỗi cấp.' },
   speed:   { name: 'Bộ đẩy',          max: 5, base: 40,  growth: 1.45, col: COL.cyan,    txt: '+4% tốc độ di chuyển mỗi cấp.' },
@@ -546,11 +643,12 @@ const META = {
   m_pulse: { name: 'Tinh thông: Pháo xung',      max: 5, base: 60, growth: 1.5, col: COL.cyan,    txt: 'Sát thương Pháo xung +10% mỗi cấp.' },
   m_orbit: { name: 'Tinh thông: Lưỡi xoay',      max: 5, base: 60, growth: 1.5, col: COL.magenta, txt: 'Sát thương Lưỡi xoay +10% mỗi cấp.' },
   m_nova:  { name: 'Tinh thông: Sóng xung kích', max: 5, base: 60, growth: 1.5, col: COL.amber,   txt: 'Sát thương Sóng xung kích +10% mỗi cấp.' },
-  m_chain: { name: 'Tinh thông: Tia sét',        max: 5, base: 60, growth: 1.5, col: COL.lime,    txt: 'Sát thương Tia sét +10% mỗi cấp.' }
+  m_chain: { name: 'Tinh thông: Tia sét',        max: 5, base: 60, growth: 1.5, col: COL.lime,    txt: 'Sát thương Tia sét +10% mỗi cấp.' },
+  m_drone: { name: 'Tinh thông: Drone',          max: 5, base: 60, growth: 1.5, col: COL.violet,  txt: 'Sát thương Drone +10% mỗi cấp.' }
 };
 const META_GROUPS = [
-  { name: 'Tinh thông vũ khí', hint: 'Tăng sát thương của từng vũ khí trong mọi trận.', ids: ['m_pulse', 'm_orbit', 'm_nova', 'm_chain'] },
-  { name: 'Khởi đầu trận', hint: '', ids: ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit'] },
+  { name: 'Tinh thông vũ khí', hint: 'Tăng sát thương của từng vũ khí trong mọi trận.', ids: ['m_pulse', 'm_orbit', 'm_nova', 'm_chain', 'm_drone'] },
+  { name: 'Khởi đầu trận', hint: '', ids: ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit', 'w_drone'] },
   { name: 'Chỉ số gốc', hint: '', ids: ['vigor', 'power', 'speed', 'magnet', 'greed', 'regen', 'armor', 'dash'] }
 ];
 const xpFor = l => Math.round(3 + l * 2.4 + l * l * 0.28);
@@ -560,8 +658,8 @@ function newRun() {
     t: 0, kills: 0, level: 1, xp: 0, xpNext: xpFor(1), pending: 0, bossN: 0, bossKills: 0, boss: null, newBest: false,
     meta: Object.assign({}, store.data.meta), gear: gearTotals(), banked: false, score: 0, free: 0, revives: 0, xpMul: 1, earned: 0,
     p: { x: 0, y: 0, vx: 0, vy: 0, r: 13, hp: 100, maxHp: 100, speed: 205, inv: 0, dashT: 0, dashCd: 0, dashMax: 2.2, dx: 1, dy: 0, face: -Math.PI / 2, regen: 0, armor: 0, magnet: 95, dmgMul: 1, crit: 0.08 },
-    w: { pulse: 1, orbit: 0, nova: 0, chain: 0 }, pas: {},
-    wt: { pulse: 0.2, nova: 2, chain: 1, orbitAng: 0 },
+    w: { pulse: 1, orbit: 0, nova: 0, chain: 0, drone: 0 }, pas: {}, evo: {}, drones: [], droneAng: 0, orbitRad: 0,
+    wt: { pulse: 0.2, nova: 2, chain: 1, orbitAng: 0, echo: 0, echoDmg: 0 },
     enemies: [], bullets: [], eb: [], gems: [], pick: [], parts: [], texts: [], rings: [], bolts: [], blades: [],
     spawnT: TUNE.grace, nextBoss: TUNE.bossFirst, nextSwarm: TUNE.swarmFirst, shake: 0, flash: 0, camX: 0, camY: 0
   };
@@ -713,14 +811,35 @@ function killEnemy(e) {
 
 /* ---------- Upgrades ---------- */
 function rollChoices() {
-  const pool = Object.keys(UPG).filter(id => lvl(id) < UPG[id].max);
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = pool[i]; pool[i] = pool[j]; pool[j] = t; }
-  const out = pool.slice(0, 3);
+  const g = G;
+  // A weapon that reached its evolution level can turn Super: those cards are always offered first.
+  const evos = Object.keys(EVO).filter(w => (g.w[w] || 0) >= EVO[w].at && !g.evo[w]).map(w => 'evo:' + w);
+  for (let i = evos.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = evos[i]; evos[i] = evos[j]; evos[j] = t; }
+  const out = evos.slice(0, 2);
+  // Weapons the player already uses come up a bit more often, so a build can actually reach its maximum.
+  const pool = Object.keys(UPG).filter(id => lvl(id) < UPG[id].max && !g.evo[id]).map(id => ({ id, w: UPG[id].type === 'weapon' && lvl(id) > 0 ? 2 : 1 }));
+  while (out.length < 3 && pool.length) {
+    let sum = 0; for (const it of pool) sum += it.w;
+    let r = Math.random() * sum, k = 0;
+    for (; k < pool.length - 1; k++) { r -= pool[k].w; if (r <= 0) break; }
+    out.push(pool.splice(k, 1)[0].id);
+  }
   return out.length ? out : ['_heal'];
 }
 function applyUpgrade(id) {
   const g = G, p = g.p;
   if (id === '_heal') { p.hp = Math.min(p.maxHp, p.hp + p.maxHp * 0.5); return; }
+  if (id.indexOf('evo:') === 0) {
+    const w = id.slice(4), E = EVO[w];
+    if (!E || g.evo[w]) return;
+    g.evo[w] = true;
+    if (w === 'nova') g.wt.nova = Math.min(g.wt.nova, 0.5);
+    banner('SIÊU CẤP: ' + E.name.toUpperCase(), COL.amber);
+    audio.play('evolve'); shake(10);
+    g.rings.push({ x: p.x, y: p.y, r: 10, max: 420, spd: 900, col: E.col, w: 6, dmg: 0, hit: null, dead: false });
+    burst(p.x, p.y, E.col, 40, 340); burst(p.x, p.y, COL.amber, 24, 260);
+    return;
+  }
   if (UPG[id].type === 'weapon') {
     g.w[id] = (g.w[id] || 0) + 1;
     if (id === 'nova') g.wt.nova = Math.min(g.wt.nova, 1);
@@ -775,6 +894,28 @@ function updatePlayer(dt) {
   p.face += angDiff(p.face, target) * (1 - Math.exp(-16 * dt));
 }
 
+function updateDrones(dt) {
+  const g = G, p = g.p, lv = g.w.drone, S = g.evo.drone ? SUP.drone : null;
+  const n = S ? S.n : at(WTAB.drone.n, lv), dmg = (S ? S.dmg : at(WTAB.drone.dmg, lv)) * p.dmgMul * mast('drone');
+  const cd = S ? S.cd : at(WTAB.drone.cd, lv), range = S ? S.range : 430, orbit = S ? S.orbit : 50;
+  while (g.drones.length < n) { g.drones.push({ x: p.x, y: p.y, cd: rnd(0.1, cd), k: 0 }); burst(p.x, p.y, COL.violet, 8, 120); }
+  g.droneAng += dt * 1.3;
+  const follow = 1 - Math.exp(-9 * dt);
+  for (let i = 0; i < g.drones.length; i++) {
+    const d = g.drones[i], a = g.droneAng + i / g.drones.length * TAU;
+    d.x += (p.x + Math.cos(a) * orbit - d.x) * follow;
+    d.y += (p.y + Math.sin(a) * orbit * 0.8 - d.y) * follow;
+    d.cd -= dt; d.k = Math.max(0, d.k - dt * 6);
+    if (d.cd > 0) continue;
+    const tgt = nearest(d.x, d.y, range * range);
+    if (!tgt) { d.cd = 0.12; continue; }
+    const ang = Math.atan2(tgt.y - d.y, tgt.x - d.x) + rnd(-0.04, 0.04);
+    g.bullets.push({ x: d.x, y: d.y, vx: Math.cos(ang) * 640, vy: Math.sin(ang) * 640, r: S ? 5 : 3.5, dmg, life: 0.95, pierce: S ? S.pierce : 0, hit: [], dead: false, col: S ? '#e4d8ff' : COL.violet, w: S ? 3.4 : 2.2 });
+    d.cd = cd; d.k = 1;
+    audio.play('drone');
+  }
+}
+
 function updateWeapons(dt) {
   const g = G, p = g.p, wt = g.wt;
   if (g.w.pulse) {
@@ -782,49 +923,63 @@ function updateWeapons(dt) {
     if (wt.pulse <= 0) {
       const tgt = nearest(p.x, p.y, 560 * 560);
       if (tgt) {
-        const lv = g.w.pulse, n = at(WTAB.pulse.n, lv), dmg = at(WTAB.pulse.dmg, lv) * p.dmgMul * mast('pulse'), pierce = at(WTAB.pulse.pierce, lv);
-        const base = Math.atan2(tgt.y - p.y, tgt.x - p.x);
+        const lv = g.w.pulse, S = g.evo.pulse ? SUP.pulse : null;
+        const n = S ? S.n : at(WTAB.pulse.n, lv), dmg = (S ? S.dmg : at(WTAB.pulse.dmg, lv)) * p.dmgMul * mast('pulse'), pierce = S ? S.pierce : at(WTAB.pulse.pierce, lv);
+        const base = Math.atan2(tgt.y - p.y, tgt.x - p.x), sp = S ? S.speed : 560, spread = S ? S.spread : 0.16;
         for (let i = 0; i < n; i++) {
-          const a = base + (i - (n - 1) / 2) * 0.16;
-          g.bullets.push({ x: p.x + Math.cos(a) * 14, y: p.y + Math.sin(a) * 14, vx: Math.cos(a) * 560, vy: Math.sin(a) * 560, r: 5, dmg, life: 1.1, pierce, hit: [], dead: false });
+          const a = base + (i - (n - 1) / 2) * spread;
+          g.bullets.push({ x: p.x + Math.cos(a) * 14, y: p.y + Math.sin(a) * 14, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: S ? S.r : 5, dmg, life: 1.1, pierce, hit: [], dead: false, col: S ? '#c9fbff' : null, w: S ? 5.5 : 3 });
         }
-        wt.pulse = at(WTAB.pulse.cd, lv);
+        wt.pulse = S ? S.cd : at(WTAB.pulse.cd, lv);
         audio.play('shoot');
       } else wt.pulse = 0.1;
     }
   }
-  g.blades.length = 0;
+  g.blades.length = 0; g.orbitRad = 0;
   if (g.w.orbit) {
-    const lv = g.w.orbit, n = at(WTAB.orbit.n, lv), rad = at(WTAB.orbit.rad, lv), dmg = at(WTAB.orbit.dmg, lv) * p.dmgMul * mast('orbit');
-    wt.orbitAng += dt * at(WTAB.orbit.spin, lv);
+    const lv = g.w.orbit, S = g.evo.orbit ? SUP.orbit : null;
+    const n = S ? S.n : at(WTAB.orbit.n, lv), rad = S ? S.rad : at(WTAB.orbit.rad, lv), dmg = (S ? S.dmg : at(WTAB.orbit.dmg, lv)) * p.dmgMul * mast('orbit');
+    const sc = S ? S.scale : 1, cool = S ? S.cool : 0.32;
+    g.orbitRad = rad;
+    wt.orbitAng += dt * (S ? S.spin : at(WTAB.orbit.spin, lv));
     for (let i = 0; i < n; i++) {
       const a = wt.orbitAng + i / n * TAU, bx = p.x + Math.cos(a) * rad, by = p.y + Math.sin(a) * rad;
-      g.blades.push({ x: bx, y: by, a });
+      g.blades.push({ x: bx, y: by, a, s: sc });
       for (const e of g.enemies) {
         if (e.dead || e.ob > 0) continue;
-        const rr = e.r + 12;
-        if (dist2(bx, by, e.x, e.y) < rr * rr) { e.ob = 0.32; hurtEnemy(e, dmg, Math.atan2(e.y - p.y, e.x - p.x), 120); }
+        const rr = e.r + 12 * sc;
+        if (dist2(bx, by, e.x, e.y) < rr * rr) { e.ob = cool; hurtEnemy(e, dmg, Math.atan2(e.y - p.y, e.x - p.x), 120); }
       }
       for (const b of g.eb) {
-        if (!b.dead && dist2(bx, by, b.x, b.y) < 18 * 18) { b.dead = true; burst(b.x, b.y, COL.danger, 4, 90); }
+        if (!b.dead && dist2(bx, by, b.x, b.y) < (18 * sc) * (18 * sc)) { b.dead = true; burst(b.x, b.y, COL.danger, 4, 90); }
       }
     }
   }
   if (g.w.nova) {
     wt.nova -= dt;
     if (wt.nova <= 0) {
-      const lv = g.w.nova;
-      wt.nova = at(WTAB.nova.cd, lv);
-      g.rings.push({ x: p.x, y: p.y, r: 10, max: at(WTAB.nova.rad, lv), spd: 560, col: COL.amber, dmg: at(WTAB.nova.dmg, lv) * p.dmgMul * mast('nova'), hit: [], dead: false });
-      audio.play('nova'); shake(4);
+      const lv = g.w.nova, S = g.evo.nova ? SUP.nova : null;
+      wt.nova = S ? S.cd : at(WTAB.nova.cd, lv);
+      const dmg = (S ? S.dmg : at(WTAB.nova.dmg, lv)) * p.dmgMul * mast('nova');
+      g.rings.push({ x: p.x, y: p.y, r: 10, max: S ? S.rad : at(WTAB.nova.rad, lv), spd: S ? 700 : 560, col: S ? '#fff1b8' : COL.amber, w: S ? 7 : 0, dmg, hit: [], dead: false });
+      if (S) { wt.echo = S.echoDelay; wt.echoDmg = dmg * S.echoMul; }
+      audio.play('nova'); shake(S ? 7 : 4);
+    }
+    if (wt.echo > 0) {
+      wt.echo -= dt;
+      if (wt.echo <= 0) {
+        g.rings.push({ x: p.x, y: p.y, r: 10, max: SUP.nova.rad, spd: 700, col: COL.amber, w: 5, dmg: wt.echoDmg, hit: [], dead: false });
+        audio.play('nova'); shake(4);
+      }
     }
   }
   if (g.w.chain) {
     wt.chain -= dt;
     if (wt.chain <= 0) {
-      const tgt = nearest(p.x, p.y, 430 * 430);
+      const S = g.evo.chain ? SUP.chain : null, reach = S ? S.reach : 430, hop = S ? S.hop : 190;
+      const tgt = nearest(p.x, p.y, reach * reach);
       if (tgt) {
-        const lv = g.w.chain, n = at(WTAB.chain.n, lv), dmg = at(WTAB.chain.dmg, lv) * p.dmgMul * mast('chain');
+        const lv = g.w.chain, n = S ? S.n : at(WTAB.chain.n, lv), dmg = (S ? S.dmg : at(WTAB.chain.dmg, lv)) * p.dmgMul * mast('chain');
         const hits = [], pts = [{ x: p.x, y: p.y }];
         let cur = tgt, fx = p.x, fy = p.y;
         for (let i = 0; i < n && cur; i++) {
@@ -832,14 +987,15 @@ function updateWeapons(dt) {
           const nx = cur.x, ny = cur.y;
           hurtEnemy(cur, dmg, Math.atan2(cur.y - fy, cur.x - fx), 40);
           fx = nx; fy = ny;
-          cur = nearest(nx, ny, 190 * 190, hits);
+          cur = nearest(nx, ny, hop * hop, hits);
         }
-        g.bolts.push({ pts, life: 0.22, dead: false });
-        wt.chain = at(WTAB.chain.cd, lv);
+        g.bolts.push({ pts, life: 0.22, w: S ? 4 : 2.5, col: S ? '#eaffd9' : COL.lime, dead: false });
+        wt.chain = S ? S.cd : at(WTAB.chain.cd, lv);
         audio.play('chain');
       } else wt.chain = 0.15;
     }
   }
+  if (g.w.drone) updateDrones(dt); else g.drones.length = 0;
 }
 
 function bossAI(e, dt, nx, ny) {
@@ -1370,6 +1526,346 @@ function bindShop() {
   els.chestDlg.addEventListener('click', e => { if (e.target === els.chestDlg) closeDlg(); });
 }
 
+/* ---------- Accounts: cloud save and admin tools ----------
+   Sign-in belongs to the platform: the page only learns who is viewing (the `user` capability) and keeps data in the
+   artifact's shared store (the `db` capability). It never sees or stores a password. Cloud layout:
+     players/<uid>   the player's own save, written by that player and readable by admins
+     adjust/<uid>    changes an admin made for that player, written by admins only and applied by the player's game
+   Who may write what is declared as access rules when the page is published, so the server decides, not this code.
+   Without sign-in (guests, public link, no capability) everything keeps working from this browser's storage. */
+const CORE_CAP = 1000000000;
+const CLOUD_KEYS = ['cores', 'meta', 'inv', 'eq', 'nextId', 'best', 'bestTime', 'bestKills', 'bestLevel', 'runs', 'adminRev'];
+const CLOUD_DELAY = 4000;
+const cloud = {
+  db: null, user: null, id: null, name: '', email: '', admin: false, owner: false,
+  ready: false,       // signed in and the shared store answered
+  status: 'local',    // local | connecting | synced | pending | syncing | readonly | error | conflict
+  at: 0, timer: 0, busy: false, again: false, retry: 0, ref: null,
+  paused: false,      // true while the player has to choose between two different saves
+  readonly: false, conflict: null, adjUnsub: null, rosterUnsub: null, names: {}
+};
+
+/* ----- small helpers ----- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clampInt = (v, lo, hi) => { v = Math.floor(+v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : lo; };
+function canon(v) {   // stable JSON: equal data always gives the same text, whatever the key order
+  if (Array.isArray(v)) return '[' + v.map(canon).join(',') + ']';
+  if (v && typeof v === 'object') return '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + canon(v[k])).join(',') + '}';
+  return v === undefined ? 'null' : JSON.stringify(v);
+}
+function hash32(s) { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(36); }
+const fmtClock = ms => { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+const sumLv = meta => Object.keys(meta || {}).reduce((s, k) => s + (+meta[k] || 0), 0);
+
+// Brings anything stored or received from the cloud into the shapes the game expects. Shared data is untrusted.
+function normalizeCloud(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const n = v => (Number.isFinite(+v) ? Math.max(0, Math.floor(+v)) : 0);
+  const out = {
+    cores: clampInt(raw.cores, 0, CORE_CAP), meta: {}, inv: Array.isArray(raw.inv) ? raw.inv.slice(0, INV_CAP) : [], eq: {}, nextId: n(raw.nextId) || 1,
+    best: n(raw.best), bestTime: n(raw.bestTime), bestKills: n(raw.bestKills), bestLevel: Math.max(1, n(raw.bestLevel)), runs: n(raw.runs), adminRev: n(raw.adminRev)
+  };
+  if (raw.meta && typeof raw.meta === 'object') for (const k in raw.meta) if (META[k]) { const v = clampInt(raw.meta[k], 0, META[k].max); if (v > 0) out.meta[k] = v; }
+  const eq = raw.eq && typeof raw.eq === 'object' ? raw.eq : {};
+  for (const s of SLOTS) out.eq[s] = Number.isInteger(eq[s]) ? eq[s] : null;
+  return out;
+}
+const cloudSnapshot = () => JSON.parse(JSON.stringify(normalizeCloud(store.data)));
+const snapHash = snap => hash32(canon(snap));
+// Same repair for admin adjustments: only known keys, whole numbers inside their limits.
+function normalizeAdjust(raw) {
+  if (!raw || typeof raw !== 'object' || !Number.isFinite(+raw.rev) || +raw.rev <= 0) return null;
+  const out = { rev: Math.floor(+raw.rev), meta: {} };
+  if (raw.cores !== undefined && raw.cores !== null && Number.isFinite(+raw.cores)) out.cores = clampInt(raw.cores, 0, CORE_CAP);
+  if (raw.meta && typeof raw.meta === 'object') for (const k in raw.meta) if (META[k]) out.meta[k] = clampInt(raw.meta[k], 0, META[k].max);
+  return out;
+}
+function sanitizeMeta() {
+  const m = store.data.meta, out = {};
+  for (const k in m) if (META[k]) { const v = clampInt(m[k], 0, META[k].max); if (v > 0) out[k] = v; }
+  store.data.meta = out;
+  store.data.cores = clampInt(store.data.cores, 0, CORE_CAP);
+}
+// A save that has never been played: nothing bought, nothing earned, no gear.
+function isFreshSave() { const d = store.data; return !d.runs && !d.inv.length && !Object.keys(d.meta).length && d.best === 0; }
+function summarize(s) { return 'Lõi ' + s.cores + ' · ' + s.runs + ' lượt · điểm cao ' + s.best + ' · ' + s.inv.length + ' trang bị · ' + sumLv(s.meta) + ' cấp kỹ năng'; }
+
+/* ----- status ----- */
+function setStatus(s) { cloud.status = s; refreshAcct(); }
+function acctLabel() {
+  if (cloud.status === 'connecting') return 'Đang kết nối';
+  if (cloud.status === 'conflict') return 'Cần chọn';
+  if (!cloud.ready) return 'Khách';
+  return cloud.admin ? 'Quản trị' : 'Đã đăng nhập';
+}
+function statusText() {
+  switch (cloud.status) {
+    case 'connecting': return 'Đang kết nối với tài khoản…';
+    case 'syncing': return 'Đang lưu lên tài khoản…';
+    case 'pending': return 'Có thay đổi mới, sắp lưu lên tài khoản.';
+    case 'synced': return 'Đã lưu lên tài khoản' + (cloud.at ? ' lúc ' + fmtClock(cloud.at) : '') + '.';
+    case 'readonly': return 'Chỉ lưu trên máy này: tài khoản chỉ có quyền xem.';
+    case 'error': return 'Chưa lưu được lên tài khoản, trò chơi sẽ thử lại.';
+    case 'conflict': return 'Tài khoản và máy này đang có hai bản lưu khác nhau. Hãy chọn một bản.';
+    default: return 'Chế độ khách: tiến trình chỉ lưu trên máy này.';
+  }
+}
+
+/* ----- upload ----- */
+function schedule(ms, keepStatus) {
+  if (cloud.timer) clearTimeout(cloud.timer);
+  cloud.timer = setTimeout(() => { cloud.timer = 0; cloudPush(); }, ms);
+  if (!keepStatus && cloud.status !== 'syncing') setStatus('pending');
+}
+// Called after every local save: uploads only when the saved progress really differs from what the cloud holds.
+function cloudTouch() {
+  if (!cloud.ready || cloud.paused || cloud.readonly) return;
+  const l = store.data.link;
+  if (l && l.uid === cloud.id && l.h === snapHash(cloudSnapshot())) return;
+  schedule(CLOUD_DELAY);
+}
+async function cloudPush() {
+  if (!cloud.ready || cloud.paused || cloud.readonly) return;
+  if (cloud.busy) { cloud.again = true; return; }
+  const snap = cloudSnapshot(), h = snapHash(snap), l = store.data.link;
+  if (l && l.uid === cloud.id && l.h === h) { setStatus('synced'); return; }
+  cloud.busy = true; setStatus('syncing');
+  try {
+    if (l && l.uid === cloud.id) {
+      // Another device (or an admin) may have saved since this device last synced: never overwrite that silently.
+      const cur = await cloud.ref.get();
+      if (cur.exists && snapHash(normalizeCloud(cur.data())) !== l.h) { cloud.busy = false; await cloudReconcile(); return; }
+    }
+    await cloud.ref.set(Object.assign({}, snap, { updated: Date.now() }));
+    store.data.link = { uid: cloud.id, h }; store.save();
+    cloud.at = Date.now(); cloud.retry = 0; setStatus('synced');
+  } catch (e) {
+    if (e && e.code === 'invalid_argument') { cloud.readonly = true; setStatus('readonly'); }
+    else { cloud.retry = Math.min(cloud.retry + 1, 6); setStatus('error'); schedule(15000 * cloud.retry, true); }
+  }
+  cloud.busy = false;
+  if (cloud.again) { cloud.again = false; cloudTouch(); }
+}
+function cloudFlush() { if (cloud.timer) { clearTimeout(cloud.timer); cloud.timer = 0; cloudPush(); } }
+
+/* ----- download and reconcile ----- */
+function adoptCloud(raw, ch) {
+  const c = normalizeCloud(raw), d = store.data;
+  if (!c) return;
+  for (const k of CLOUD_KEYS) d[k] = c[k];
+  sanitizeGear();
+  d.link = { uid: cloud.id, h: ch };   // what the cloud held; if repairs changed anything, the next save uploads the repaired copy
+  store.save();
+  cloud.at = Date.now(); setStatus('synced');
+  updateMenu(); if (state === 'shop') renderShop();
+}
+async function cloudReconcile() {
+  setStatus('connecting');
+  let snap;
+  try { snap = await cloud.ref.get(); } catch (e) { setStatus('error'); schedule(15000, true); return; }
+  const d = store.data, local = cloudSnapshot(), lh = snapHash(local);
+  if (!snap.exists) { await cloudPush(); watchAdjust(); return; }          // first save for this account
+  const raw = snap.data(), cdoc = normalizeCloud(raw), ch = snapHash(cdoc);
+  const link = d.link && d.link.uid === cloud.id ? d.link : null;
+  if (ch === lh) { d.link = { uid: cloud.id, h: ch }; store.save(); cloud.at = Date.now(); setStatus('synced'); watchAdjust(); return; }
+  if (link && link.h === lh) { adoptCloud(raw, ch); watchAdjust(); return; }      // only the account moved on (another device, or an admin)
+  if (link && link.h === ch) { await cloudPush(); watchAdjust(); return; }        // only this device moved on
+  if (!link && isFreshSave()) { adoptCloud(raw, ch); watchAdjust(); return; }     // new device, nothing to lose
+  cloud.conflict = { local, cloud: cdoc, raw, ch };                                // both sides have different progress: the player decides
+  cloud.paused = true; setStatus('conflict');
+  if (state === 'menu') openAcct();
+}
+async function cloudResolve(useCloud) {
+  const c = cloud.conflict; if (!c) return;
+  cloud.conflict = null; cloud.paused = false;
+  if (useCloud) adoptCloud(c.raw, c.ch);
+  else { store.data.link = { uid: cloud.id, h: c.ch }; store.save(); await cloudPush(); }
+  watchAdjust(); refreshAcct();
+}
+async function cloudSyncNow() {
+  if (!cloud.ready || cloud.busy) return;
+  if (cloud.paused) return;
+  if (cloud.timer) { clearTimeout(cloud.timer); cloud.timer = 0; }
+  await cloudReconcile();
+}
+
+/* ----- changes made by an admin ----- */
+function applyAdjust(raw) {
+  const a = normalizeAdjust(raw), d = store.data;
+  if (!a || a.rev <= d.adminRev) return;
+  const parts = [];
+  if (a.cores !== undefined) { d.cores = a.cores; parts.push('Lõi ' + a.cores); }
+  for (const k in a.meta) { if (a.meta[k] > 0) d.meta[k] = a.meta[k]; else delete d.meta[k]; parts.push(META[k].name + ' ' + a.meta[k]); }
+  d.adminRev = a.rev;
+  store.save();
+  const txt = 'Quản trị viên đã cập nhật tài khoản của bạn: ' + (parts.join(', ') || 'không có thay đổi') + '.';
+  menuNoteText = txt;
+  if (state === 'play' || state === 'pause' || state === 'levelup') banner('QUẢN TRỊ VIÊN ĐÃ CẬP NHẬT', COL.amber);
+  updateMenu(); if (state === 'shop') renderShop();
+}
+function watchAdjust() {
+  if (cloud.adjUnsub || !cloud.ready || cloud.paused) return;
+  try { cloud.adjUnsub = cloud.db.doc('adjust/' + cloud.id).onSnapshot(s => { if (s.exists) applyAdjust(s.data()); }, () => { cloud.adjUnsub = null; }); }
+  catch (e) { cloud.adjUnsub = null; }
+}
+
+/* ----- connect ----- */
+async function cloudStart() {
+  const C = window.claude;
+  if (!C || typeof C.use !== 'function') return;
+  setStatus('connecting');
+  let db = null, user = null;
+  try { db = await C.use('db'); user = await C.use('user'); } catch (e) { /* stay in guest mode */ }
+  if (!db || !user) { setStatus('local'); return; }
+  let me = null;
+  try { me = await user.me(); } catch (e) { /* ignore */ }
+  if (!me || !me.id) { setStatus('local'); return; }
+  cloud.db = db; cloud.user = user; cloud.id = me.id; cloud.name = me.name || ''; cloud.email = String(me.email || '').toLowerCase();
+  try { cloud.admin = !!(await user.canEdit()); cloud.owner = !!(await user.isOwner()); } catch (e) { /* ignore */ }
+  let w = null; try { w = await user.can('data.write'); } catch (e) { /* ignore */ }
+  cloud.readonly = w === false;
+  cloud.ref = db.doc('players/' + me.id);
+  cloud.ready = true;
+  store.onSave = cloudTouch;
+  if (cloud.readonly) { setStatus('readonly'); return; }
+  await cloudReconcile();
+}
+
+/* ---------- Account panel ---------- */
+function refreshAcct() {
+  if (!els.acctLbl) return;
+  els.acctLbl.textContent = acctLabel();
+  if (state !== 'acct') return;
+  renderAcct();
+}
+function renderAcct() {
+  const who = cloud.ready ? (cloud.name || 'Tài khoản của bạn') : 'Khách';
+  els.acctName.textContent = who;
+  els.acctStatus.textContent = statusText();
+  els.acctStatus.setAttribute && els.acctStatus.setAttribute('data-s', cloud.status);
+  let txt;
+  if (cloud.ready && cloud.readonly) txt = 'Tài khoản này chỉ có quyền xem trang nên chưa thể lưu lên tài khoản. Hãy nhờ chủ trang cấp quyền Cộng tác viên (Contributor) để lưu tiến trình trên mọi thiết bị.';
+  else if (cloud.ready) txt = 'Lõi, kỹ năng, chỉ số và trang bị của bạn được lưu theo tài khoản, nên mở trò chơi trên máy khác vẫn thấy đủ.';
+  else if (cloud.status === 'connecting') txt = 'Đang kiểm tra bạn đã đăng nhập chưa.';
+  else txt = 'Đăng nhập tài khoản Claude trước khi mở trang này để lưu tiến trình lên tài khoản. Khi chưa đăng nhập, bạn vẫn chơi bình thường và tiến trình lưu trên trình duyệt này.';
+  if (cloud.ready && cloud.admin) txt += ' Quyền quản trị thuộc về chủ trang và các tài khoản được chia sẻ quyền Editor (dự kiến: hpmainho20@gmail.com). Máy chủ kiểm tra quyền này mỗi khi gửi thay đổi.';
+  els.acctText.textContent = txt;
+  const role = cloud.ready ? (cloud.admin ? 'Vai trò: quản trị viên' : 'Vai trò: người chơi') + (cloud.email ? ' · ' + cloud.email : '') : '';
+  els.acctRole.textContent = role; els.acctRole.hidden = !role;
+  const c = cloud.conflict;
+  els.acctConflict.hidden = !c;
+  if (c) { els.confLocal.textContent = summarize(c.local); els.confCloud.textContent = summarize(c.cloud); }
+  els.syncBtn.hidden = !(cloud.ready && !cloud.readonly && !cloud.paused);
+  els.adminBtn.hidden = !(cloud.ready && cloud.admin);
+}
+function openAcct() { if (state !== 'menu') return; state = 'acct'; renderAcct(); showPanel('acct'); audio.play('ui'); }
+function closeAcct() { if (state !== 'acct') return; state = 'menu'; updateMenu(); showPanel('menu'); audio.play('ui'); }
+
+/* ---------- Admin panel ---------- */
+let roster = [], admSel = null, admBase = null, admDirty = false;
+const admLabel = (e, i) => { const n = cloud.names[e.id] || {}; return (n.name || n.email || 'Người chơi ' + (i + 1)) + (e.id === cloud.id ? ' (bạn)' : '') + ' · ' + e.d.cores + ' Lõi'; };
+function admMsg(t, bad) { els.adminMsg.textContent = t; els.adminMsg.setAttribute && els.adminMsg.setAttribute('data-bad', bad ? '1' : '0'); }
+function renderAdminPick() {
+  els.adminPick.innerHTML = roster.length
+    ? roster.map((e, i) => '<option value="' + esc(e.id) + '"' + (e.id === admSel ? ' selected' : '') + '>' + esc(admLabel(e, i)) + '</option>').join('')
+    : '<option value="">Chưa có người chơi nào</option>';
+}
+function renderAdminForm(force) {
+  const cur = roster.find(e => e.id === admSel);
+  if (!cur) { els.adminForm.innerHTML = '<p class="hint">Chưa có người chơi nào lưu tiến trình lên tài khoản.</p>'; admBase = null; els.adminApply.disabled = true; els.adminMax.disabled = true; return; }
+  if (admDirty && !force) return;
+  els.adminApply.disabled = false; els.adminMax.disabled = false;
+  admBase = { id: cur.id, cores: cur.d.cores, meta: Object.assign({}, cur.d.meta), rev: cur.d.adminRev };
+  let h = '<div class="sect"><p class="sect-h">LÕI</p><label class="arow" for="adm_cores"><span>Số Lõi<small>0 đến ' + CORE_CAP + '</small></span><input id="adm_cores" type="number" inputmode="numeric" min="0" max="' + CORE_CAP + '" step="1" value="' + cur.d.cores + '"></label></div>';
+  for (const g of META_GROUPS) {
+    h += '<div class="sect"><p class="sect-h">' + g.name.toUpperCase() + '</p>' + g.ids.map(id => {
+      const m = META[id], lv = cur.d.meta[id] || 0;
+      return '<label class="arow" for="adm_m_' + id + '"><span>' + m.name + '<small>tối đa ' + m.max + '</small></span><input id="adm_m_' + id + '" type="number" inputmode="numeric" min="0" max="' + m.max + '" step="1" value="' + lv + '"></label>';
+    }).join('') + '</div>';
+  }
+  els.adminForm.innerHTML = h;
+  admDirty = false;
+}
+function onRoster(snap) {
+  roster = snap.docs.map(s => { const raw = s.data() || {}; return { id: s.id, d: normalizeCloud(raw) || normalizeCloud({}), updated: Number.isFinite(+raw.updated) ? +raw.updated : 0 }; });
+  roster.sort((a, b) => b.updated - a.updated);
+  if (!roster.some(e => e.id === admSel)) { admSel = roster.length ? roster[0].id : null; admDirty = false; }
+  renderAdminPick(); renderAdminForm(false);
+  els.adminWho.textContent = (cloud.email || 'quản trị viên') + ' · ' + roster.length + ' người chơi';
+  const ids = roster.map(e => e.id).filter(id => !cloud.names[id]);
+  if (ids.length && cloud.user) {
+    cloud.user.profiles(ids).then(ps => {
+      for (const id of ids) { const p = ps && ps[id]; cloud.names[id] = { name: p ? p.name || '' : '', email: p ? p.email || '' : '' }; }
+      if (state === 'admin') renderAdminPick();
+    }).catch(() => { /* names are optional */ });
+  }
+}
+function openAdmin() {
+  if (state !== 'acct' || !cloud.ready || !cloud.admin) return;
+  state = 'admin'; roster = []; admSel = null; admDirty = false; admMsg('');
+  els.adminWho.textContent = cloud.email || 'quản trị viên';
+  renderAdminPick(); renderAdminForm(true); showPanel('admin'); audio.play('ui');
+  try {
+    cloud.rosterUnsub = cloud.db.collection('players').orderBy('updated', 'desc').limit(200).onSnapshot(onRoster, () => { cloud.rosterUnsub = null; admMsg('Không đọc được danh sách người chơi. Tài khoản này có thể không có quyền quản trị.', true); });
+  } catch (e) { cloud.rosterUnsub = null; admMsg('Không mở được danh sách người chơi.', true); }
+}
+function closeAdmin() {
+  if (state !== 'admin') return;
+  if (cloud.rosterUnsub) { try { cloud.rosterUnsub(); } catch (e) { /* ignore */ } cloud.rosterUnsub = null; }
+  state = 'acct'; renderAcct(); showPanel('acct'); audio.play('ui');
+}
+function readAdminForm() {
+  const out = { cores: undefined, meta: {} }, b = admBase;
+  if (!b) return out;
+  const read = (id, lo, hi) => { const el = $(id), raw = el ? el.value : undefined; return raw === undefined || raw === '' || raw === null ? null : clampInt(raw, lo, hi); };
+  const c = read('adm_cores', 0, CORE_CAP); if (c !== null && c !== b.cores) out.cores = c;
+  for (const k in META) { const v = read('adm_m_' + k, 0, META[k].max); if (v !== null && v !== (b.meta[k] || 0)) out.meta[k] = v; }
+  return out;
+}
+async function adminApply() {
+  const b = admBase; if (!b || !cloud.ready || !cloud.admin || cloud.adminBusy) return;
+  const ch = readAdminForm();
+  if (ch.cores === undefined && !Object.keys(ch.meta).length) { admMsg('Chưa có thay đổi nào để gửi.', false); return; }
+  cloud.adminBusy = true; els.adminApply.disabled = true; admMsg('Đang gửi…', false);
+  try {
+    const ref = cloud.db.doc('adjust/' + b.id), cur = await ref.get(), prev = cur.exists ? normalizeAdjust(cur.data()) : null;
+    // Earlier changes the player has not applied yet stay in the document; applied ones are dropped so they cannot undo later purchases.
+    const keep = prev && prev.rev > b.rev ? prev : null, now = Date.now();
+    const doc = { rev: Math.max(now, (prev ? prev.rev : 0) + 1), by: cloud.id, at: now, meta: Object.assign({}, keep ? keep.meta : {}, ch.meta) };
+    const cores = ch.cores !== undefined ? ch.cores : keep ? keep.cores : undefined;
+    if (cores !== undefined) doc.cores = cores;
+    await ref.set(doc);
+    if (ch.cores !== undefined) b.cores = ch.cores;
+    for (const k in ch.meta) b.meta[k] = ch.meta[k];
+    admDirty = false;
+    admMsg('Đã gửi. Người chơi nhận thay đổi ngay khi mở trò chơi.', false);
+    audio.play('pickup');
+  } catch (e) {
+    admMsg(e && e.code === 'invalid_argument' ? 'Máy chủ từ chối: tài khoản này không có quyền quản trị.' : 'Gửi chưa được, hãy thử lại sau ít giây.', true);
+  }
+  cloud.adminBusy = false; els.adminApply.disabled = false;
+}
+function adminMaxAll() {
+  for (const k in META) { const el = $('adm_m_' + k); if (el) el.value = String(META[k].max); }
+  admDirty = true; admMsg('Đã điền mức tối đa cho mọi kỹ năng và chỉ số. Bấm Gửi thay đổi để áp dụng.', false);
+}
+
+function initAccountUi() {
+  ['acctBtn', 'acctLbl', 'acct', 'acctName', 'acctStatus', 'acctText', 'acctRole', 'acctConflict', 'confLocal', 'confCloud', 'confUseCloud', 'confUseLocal',
+   'syncBtn', 'adminBtn', 'acctBack', 'admin', 'adminWho', 'adminPick', 'adminForm', 'adminMsg', 'adminApply', 'adminMax', 'adminBack'].forEach(id => { els[id] = $(id); });
+  els.acctBtn.addEventListener('click', () => openAcct());
+  els.acctBack.addEventListener('click', () => closeAcct());
+  els.syncBtn.addEventListener('click', () => { audio.play('ui'); cloudSyncNow(); });
+  els.adminBtn.addEventListener('click', () => openAdmin());
+  els.confUseCloud.addEventListener('click', () => cloudResolve(true));
+  els.confUseLocal.addEventListener('click', () => cloudResolve(false));
+  els.adminBack.addEventListener('click', () => closeAdmin());
+  els.adminApply.addEventListener('click', () => adminApply());
+  els.adminMax.addEventListener('click', () => adminMaxAll());
+  els.adminPick.addEventListener('change', e => { admSel = e.target && e.target.value ? e.target.value : null; admDirty = false; admMsg(''); renderAdminForm(true); });
+  els.adminForm.addEventListener('input', () => { admDirty = true; });
+}
+
 /* ---------- Rendering ---------- */
 function poly(x, y, r, n, rot) {
   ctx.beginPath();
@@ -1444,6 +1940,16 @@ function drawPlayer(p, t) {
   ctx.globalAlpha = 1; ctx.shadowBlur = 0;
 }
 
+function drawDrone(d, t, big) {
+  const r = big ? 10 : 7, col = big ? '#e4d8ff' : COL.violet;
+  ctx.save(); ctx.translate(d.x, d.y);
+  poly(0, 0, r, 6, t * 2); fillSoft(col, 0.35); glowStroke(col, 2);
+  ctx.rotate(t * 14); ctx.beginPath(); ctx.moveTo(-r * 1.6, 0); ctx.lineTo(r * 1.6, 0);
+  ctx.lineWidth = 1.2; ctx.strokeStyle = col; ctx.globalAlpha = 0.55; ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.restore();
+  if (d.k > 0) { ctx.beginPath(); ctx.arc(d.x, d.y, r + 5 * d.k, 0, TAU); ctx.strokeStyle = '#ffffff'; ctx.globalAlpha = d.k * 0.5; ctx.lineWidth = 1.5; ctx.stroke(); ctx.globalAlpha = 1; }
+}
+
 function drawPickup(k, t) {
   const y = k.y + Math.sin(t * 4 + k.x) * 3;
   if (k.life < 4 && Math.floor(t * 8) % 2 === 0) return;
@@ -1469,7 +1975,7 @@ function drawWorld(g, t) {
   for (const k of g.pick) drawPickup(k, t);
   for (const r of g.rings) {
     ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU);
-    ctx.strokeStyle = r.col; ctx.globalAlpha = Math.max(0, 1 - r.r / r.max) * (r.dmg > 0 ? 0.9 : 0.6); ctx.lineWidth = r.dmg > 0 ? 4 : 2; ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.strokeStyle = r.col; ctx.globalAlpha = Math.max(0, 1 - r.r / r.max) * (r.dmg > 0 ? 0.9 : 0.6); ctx.lineWidth = r.w || (r.dmg > 0 ? 4 : 2); ctx.stroke(); ctx.globalAlpha = 1;
   }
   for (const e of g.enemies) if (!e.dead) drawEnemy(e, t);
   for (const b of g.eb) {
@@ -1477,17 +1983,22 @@ function drawWorld(g, t) {
     ctx.globalAlpha = 0.25; ctx.beginPath(); ctx.arc(b.x, b.y, b.r + 4, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
   }
   for (const b of g.bullets) {
-    ctx.strokeStyle = COL.cyan; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.strokeStyle = b.col || COL.cyan; ctx.lineWidth = b.w || 3; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.022, b.y - b.vy * 0.022); ctx.stroke();
   }
+  if (g.evo.orbit && g.orbitRad) {
+    ctx.beginPath(); ctx.arc(p.x, p.y, g.orbitRad, 0, TAU);
+    ctx.strokeStyle = COL.magenta; ctx.globalAlpha = 0.16; ctx.lineWidth = 6; ctx.stroke(); ctx.globalAlpha = 1;
+  }
   for (const bl of g.blades) {
-    ctx.save(); ctx.translate(bl.x, bl.y); ctx.rotate(bl.a + Math.PI / 2);
+    const sc = bl.s || 1, col = sc > 1 ? '#ff9de0' : COL.magenta;
+    ctx.save(); ctx.translate(bl.x, bl.y); ctx.rotate(bl.a + Math.PI / 2); ctx.scale(sc, sc);
     ctx.beginPath(); ctx.moveTo(0, -13); ctx.lineTo(7, 0); ctx.lineTo(0, 13); ctx.lineTo(-7, 0); ctx.closePath();
-    fillSoft(COL.magenta, 0.35); glowStroke(COL.magenta, 2);
+    fillSoft(col, sc > 1 ? 0.5 : 0.35); glowStroke(col, 2);
     ctx.restore();
   }
   for (const bo of g.bolts) {
-    ctx.strokeStyle = COL.lime; ctx.lineWidth = 2.5; ctx.globalAlpha = Math.min(1, bo.life / 0.22);
+    ctx.strokeStyle = bo.col || COL.lime; ctx.lineWidth = bo.w || 2.5; ctx.globalAlpha = Math.min(1, bo.life / 0.22);
     ctx.beginPath(); ctx.moveTo(bo.pts[0].x, bo.pts[0].y);
     for (let i = 1; i < bo.pts.length; i++) {
       const a = bo.pts[i - 1], b = bo.pts[i], mx = (a.x + b.x) / 2 + rnd(-10, 10), my = (a.y + b.y) / 2 + rnd(-10, 10);
@@ -1495,6 +2006,7 @@ function drawWorld(g, t) {
     }
     ctx.stroke(); ctx.globalAlpha = 1;
   }
+  for (const d of g.drones) drawDrone(d, t, !!g.evo.drone);
   if (p.hp > 0) drawPlayer(p, t);
   for (const q of g.parts) { ctx.globalAlpha = Math.max(0, q.life / q.max); ctx.fillStyle = q.col; ctx.fillRect(q.x - q.size / 2, q.y - q.size / 2, q.size, q.size); }
   ctx.globalAlpha = 1;
@@ -1525,7 +2037,7 @@ function drawScreenOverlay(g) {
 }
 
 function render() {
-  const t = performance.now() / 1000, g = G, live = !!g && state !== 'menu' && state !== 'shop';
+  const t = performance.now() / 1000, g = G, live = !!g && !isHub();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, cv.width, cv.height);
   const cx = live ? g.camX : Math.cos(amb.t * 0.07) * 500, cy = live ? g.camY : Math.sin(amb.t * 0.05) * 400;
@@ -1567,7 +2079,7 @@ function banner(text, col) {
 }
 function hud() {
   const g = G;
-  if (!g || state === 'menu' || state === 'shop') return;
+  if (!g || isHub()) return;
   const p = g.p, hp = Math.max(0, p.hp) / p.maxHp;
   setText(els.timer, fmtTime(g.t), 'timer');
   setText(els.lv, String(g.level), 'lv');
@@ -1590,7 +2102,8 @@ function hud() {
   els.hurt.style.opacity = REDUCE ? String(g.flash * 0.3) : String(g.flash * 0.9);
 }
 
-const PANELS = ['menu', 'shop', 'levelup', 'pause', 'over'];
+const PANELS = ['menu', 'shop', 'acct', 'admin', 'levelup', 'pause', 'over'];
+const isHub = () => state === 'menu' || state === 'shop' || state === 'acct' || state === 'admin';   // screens drawn over the idle backdrop
 function showPanel(id) { for (const k of PANELS) $(k).hidden = k !== id; }
 function hidePanels() { for (const k of PANELS) $(k).hidden = true; }
 
@@ -1604,6 +2117,7 @@ function updateMenu() {
   els.menuNote.hidden = !menuNoteText;
   const label = 'Âm thanh: ' + (audio.muted ? 'tắt' : 'bật');
   els.menuMute.textContent = label;
+  if (els.acctLbl) els.acctLbl.textContent = acctLabel();
   els.muteBtn.textContent = audio.muted ? 'TẮT' : 'ÂM';
 }
 function toggleMute() {
@@ -1619,6 +2133,10 @@ function renderChoices() {
     if (id === '_heal') {
       return '<button class="choice" type="button" data-i="' + i + '" style="--c:' + COL.lime + '"><span class="kind">BỔ SUNG</span><span class="cname">Sửa chữa</span><span class="ctxt">Hồi 50% máu tối đa. Mọi nâng cấp khác đã đạt cấp cao nhất.</span><span class="key">' + (i + 1) + '</span></button>';
     }
+    if (id.indexOf('evo:') === 0) {
+      const w = id.slice(4), E = EVO[w];
+      return '<button class="choice evo" type="button" data-i="' + i + '" style="--c:' + COL.amber + '"><span class="kind">SIÊU CẤP · TỪ ' + UPG[w].name.toUpperCase() + '</span><span class="cname">' + E.name + '</span><span class="pips">' + pipsHtml(E.at, E.at) + '</span><span class="ctxt">' + E.txt + '</span><span class="key">' + (i + 1) + '</span></button>';
+    }
     const u = UPG[id], lv = lvl(id), txt = Array.isArray(u.txt) ? u.txt[lv] : u.txt;
     let pips = '';
     for (let k = 0; k < u.max; k++) pips += '<i class="' + (k < lv ? 'on' : k === lv ? 'next' : '') + '"></i>';
@@ -1629,7 +2147,12 @@ function renderChoices() {
 }
 function renderBuild() {
   let html = '';
-  for (const id in UPG) { const lv = lvl(id); if (lv) html += '<span class="chip" style="--c:' + UPG[id].col + '">' + UPG[id].name + ' <b>Cấp ' + lv + '</b></span>'; }
+  for (const id in UPG) {
+    const lv = lvl(id);
+    if (!lv) continue;
+    if (G.evo[id]) html += '<span class="chip evo" style="--c:' + COL.amber + '">' + EVO[id].name + ' <b>SIÊU CẤP</b></span>';
+    else html += '<span class="chip" style="--c:' + UPG[id].col + '">' + UPG[id].name + ' <b>Cấp ' + lv + '</b></span>';
+  }
   els.build.innerHTML = html || '<span class="hint">Chưa có nâng cấp nào.</span>';
 }
 
@@ -1643,6 +2166,7 @@ function startRun() {
   if (mt.w_nova) G.w.nova = 1;
   if (mt.w_chain) G.w.chain = 1;
   if (mt.w_orbit) G.w.orbit = 1;
+  if (mt.w_drone) G.w.drone = 1;
   G.free = mt.free || 0; G.revives = mt.revive || 0;
   menuNoteText = ''; cpT = 0;
   input.dashQ = false; clearStick(); overReady = false;
@@ -1683,12 +2207,13 @@ function goMenu() {
 }
 function openLevelUp() {
   const g = G;
-  let title;
-  if (g.free > 0) { g.free--; title = 'Quà khởi đầu: chọn một nâng cấp'; }
-  else { g.pending--; title = 'Cấp ' + (g.level - g.pending) + ': chọn một nâng cấp'; }
+  let head;
+  if (g.free > 0) { g.free--; head = 'Quà khởi đầu'; }
+  else { g.pending--; head = 'Cấp ' + (g.level - g.pending); }
   choices = rollChoices();
+  const canEvolve = choices.some(c => c.indexOf('evo:') === 0);
   state = 'levelup'; clearStick();
-  els.luTitle.textContent = title;
+  els.luTitle.textContent = head + (canEvolve ? ': Siêu cấp sẵn sàng' : ': chọn một nâng cấp');
   renderChoices(); showPanel('levelup');
   audio.play('level');
 }
@@ -1729,7 +2254,7 @@ function frame(now) {
   lastFrame = now;
   if (state === 'play') { update(dt); cpT += dt; if (cpT > 12) { cpT = 0; checkpoint(); } }
   else if (state === 'over') updateFx(dt);
-  else if (state === 'menu' || state === 'shop') updateAmbient(dt);
+  else if (isHub()) updateAmbient(dt);
   render();
   hud();
 }
@@ -1738,6 +2263,8 @@ function frame(now) {
 function bind() {
   window.addEventListener('keydown', e => {
     const c = e.code;
+    const tag = e.target && e.target.tagName;
+    if ((tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') && c !== 'Escape') return;   // typing in a form field: leave the keys alone
     if (MOVE_KEYS[c] || c === 'Space') e.preventDefault();
     input.keys[c] = true;
     if (e.repeat) return;
@@ -1751,6 +2278,8 @@ function bind() {
         break;
       case 'pause': if (c === 'KeyP' || c === 'Escape') resumeRun(); break;
       case 'shop': if (c === 'Escape' || c === 'Backspace') { if (dlg) closeDlg(); else closeShop(); } break;
+      case 'acct': if (c === 'Escape') closeAcct(); break;
+      case 'admin': if (c === 'Escape') closeAdmin(); break;
       case 'levelup': {
         const n = c.indexOf('Digit') === 0 ? +c.slice(5) : c.indexOf('Numpad') === 0 ? +c.slice(6) : 0;
         if (n >= 1) chooseUpgrade(n - 1);
@@ -1762,8 +2291,8 @@ function bind() {
   });
   window.addEventListener('keyup', e => { input.keys[e.code] = false; });
   window.addEventListener('blur', () => { for (const k in input.keys) input.keys[k] = false; clearStick(); if (state === 'play') pauseRun(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'play') pauseRun(); else checkpoint(); } });
-  window.addEventListener('pagehide', () => checkpoint());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { if (state === 'play') pauseRun(); else checkpoint(); cloudFlush(); } });
+  window.addEventListener('pagehide', () => { checkpoint(); cloudFlush(); });
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', resize);
   if (window.ResizeObserver) { try { new ResizeObserver(resize).observe($('app')); } catch (e) { /* ignore */ } }
@@ -1817,15 +2346,18 @@ function bind() {
  'recScore', 'recTime', 'recKills', 'startBtn', 'menuMute', 'luTitle', 'choices', 'shopBtn', 'menuCores', 'menuNote', 'pauseCores', 'shopCores', 'tabs', 'tabBody', 'chestDlg', 'chestBody', 'chestActions', 'itemDlg', 'itemBody', 'itemActions', 'shopBack', 'ovCores', 'overShop', 'reviveTag', 'build', 'resumeBtn', 'restartBtn', 'pauseMenuBtn',
  'ovScore', 'ovTime', 'ovKills', 'ovLevel', 'newBest', 'ovBest', 'retryBtn', 'overMenuBtn'].forEach(id => { els[id] = $(id); });
 store.load();
+sanitizeMeta();
 sanitizeGear();
 claimPending();
 audio.muted = !!store.data.muted;
 resize();
 bind();
+initAccountUi();
 updateMenu();
 showPanel('menu');
-window.__ns = () => ({ state, G });   // debug hook for automated checks
+window.__ns = () => ({ state, G, store, cloud });   // debug hook for automated checks
 requestAnimationFrame(t => { lastFrame = t; frame(t); });
+cloudStart();   // optional: signs in through the platform and syncs; the game runs without it
 })();
 </script>
 
