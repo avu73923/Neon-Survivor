@@ -211,6 +211,31 @@ select.field option { color: #0b0716; background: #f3eeff; }
 .arow input { width: 100%; text-align: right; font-variant-numeric: tabular-nums; }
 #adminMsg[data-bad="1"] { color: var(--danger); }
 
+
+/* Sign-in gate and leaderboard */
+.login-main { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.login-main .btn { width: 100%; }
+.divider { margin: 0; display: flex; align-items: center; gap: 12px; font: 600 11px/1 var(--font-data); letter-spacing: .16em; color: var(--ink-dim); text-transform: uppercase; }
+.divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: rgba(255, 255, 255, .16); }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid rgba(255, 255, 255, .24); }
+.seg button { padding: 11px 8px; border: 0; background: transparent; color: var(--ink-dim); font: 700 13px/1 var(--font-display); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: rgba(56, 232, 255, .16); color: var(--cyan); box-shadow: inset 0 -2px 0 var(--cyan); }
+.seg button:disabled, .login-form .btn:disabled, .login-main .btn:disabled { cursor: not-allowed; }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
+.fld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.login-msg, #acctNote, #boardMsg { min-height: 1.4em; }
+.login-msg[data-bad="1"], #acctNote[data-bad="1"], #boardMsg[data-bad="1"] { color: var(--danger); }
+.board-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; overflow: auto; min-height: 0; flex: 1 1 auto; }
+.brow { display: grid; grid-template-columns: 2.4em minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .03); }
+.brow.me { border-color: var(--cyan); background: rgba(56, 232, 255, .09); }
+.brow.top .rk { color: var(--amber); }
+.brow .rk { font: 700 18px/1 var(--font-data); color: var(--ink-dim); text-align: center; font-variant-numeric: tabular-nums; }
+.brow .nm { display: flex; flex-direction: column; gap: 3px; min-width: 0; font-size: 16px; line-height: 1.2; overflow-wrap: anywhere; }
+.brow small { font: 500 11px/1.3 var(--font-data); color: var(--ink-dim); }
+.brow b { font: 700 18px/1 var(--font-data); font-variant-numeric: tabular-nums; color: var(--cyan); }
+.xbtn { width: 30px; height: 30px; border: 1px solid rgba(255, 255, 255, .22); background: rgba(255, 77, 94, .12); color: var(--danger); cursor: pointer; font-size: 13px; }
+@media (max-width: 520px) { .brow { grid-template-columns: 1.8em minmax(0, 1fr) auto; } .brow .xbtn { grid-column: 3; } }
+
 @media (max-width: 520px) {
   .tab { font-size: 13px; letter-spacing: .04em; padding-inline: 4px; white-space: nowrap; }
   .card { padding: 20px 18px; gap: 14px; }
@@ -262,11 +287,13 @@ select.field option { color: #0b0716; background: #f3eeff; }
         <div class="rec"><span class="tag">ĐIỂM CAO</span><b id="recScore">0</b></div>
         <div class="rec"><span class="tag">SỐNG LÂU NHẤT</span><b id="recTime">00:00</b></div>
         <div class="rec"><span class="tag">HẠ NHIỀU NHẤT</span><b id="recKills">0</b></div>
+        <div class="rec"><span class="tag">CHIẾN LỰC</span><b id="recPower">0</b></div>
       </div>
       <p class="newbest" id="menuNote" role="status" hidden></p>
       <div class="actions">
         <button class="btn" id="startBtn" type="button">Bắt đầu</button>
         <button class="btn ghost" id="shopBtn" type="button">Xưởng · <span class="cores" id="menuCores">0</span> Lõi</button>
+        <button class="btn ghost" id="boardBtn" type="button">Xếp hạng</button>
         <button class="btn ghost" id="acctBtn" type="button">Tài khoản · <span id="acctLbl">Khách</span></button>
         <button class="btn ghost" id="menuMute" type="button">Âm thanh: bật</button>
       </div>
@@ -346,10 +373,14 @@ select.field option { color: #0b0716; background: #f3eeff; }
         </div>
         <p class="hint">Bản không được chọn sẽ bị ghi đè. Chưa chọn thì tiến trình chỉ lưu trên máy này.</p>
       </div>
+      <p class="hint" id="acctNote" role="status" data-bad="0" hidden></p>
       <div class="actions">
         <button class="btn" id="acctBack" type="button">Quay lại</button>
         <button class="btn ghost" id="syncBtn" type="button" hidden>Đồng bộ ngay</button>
         <button class="btn ghost" id="adminBtn" type="button" hidden>Quản trị</button>
+        <button class="btn ghost" id="linkBtn" type="button" hidden>Liên kết Google hoặc email</button>
+        <button class="btn ghost" id="verifyBtn" type="button" hidden>Gửi lại email xác minh</button>
+        <button class="btn ghost" id="signOutBtn" type="button" hidden>Đăng xuất</button>
       </div>
     </div>
   </section>
@@ -368,6 +399,52 @@ select.field option { color: #0b0716; background: #f3eeff; }
         <button class="btn sm" id="adminApply" type="button">Gửi thay đổi</button>
         <button class="btn sm ghost" id="adminMax" type="button">Tối đa hết</button>
         <button class="btn sm ghost" id="adminBack" type="button">Quay lại</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="login" class="panel" hidden aria-labelledby="t-login">
+    <div class="card">
+      <p class="eyebrow">NEON SURVIVOR</p>
+      <h2 id="t-login"><span id="loginTitle">ĐĂNG NHẬP ĐỂ CHƠI</span></h2>
+      <p class="lead" id="loginLead"></p>
+      <div class="actions login-main">
+        <button class="btn" id="loginGoogle" type="button">Đăng nhập bằng Google</button>
+        <button class="btn ghost" id="loginGuest" type="button">Chơi với tư cách khách</button>
+      </div>
+      <p class="divider"><span>hoặc dùng email</span></p>
+      <div class="seg" id="loginTabs" role="group" aria-label="Đăng nhập hoặc đăng ký bằng email">
+        <button type="button" id="loginTabIn" aria-pressed="true">Đăng nhập</button>
+        <button type="button" id="loginTabUp" aria-pressed="false">Đăng ký</button>
+      </div>
+      <form id="loginForm" class="login-form" novalidate>
+        <label class="fld" id="loginNameRow" hidden><span class="tag">TÊN HIỂN THỊ</span><input class="field" id="loginName" type="text" maxlength="40" autocomplete="nickname" placeholder="Tên của bạn"></label>
+        <label class="fld"><span class="tag">EMAIL</span><input class="field" id="loginEmail" type="email" autocomplete="email" inputmode="email" placeholder="ban@example.com"></label>
+        <label class="fld"><span class="tag">MẬT KHẨU</span><input class="field" id="loginPass" type="password" autocomplete="current-password" placeholder="Ít nhất 6 ký tự"></label>
+        <button class="btn" id="loginSubmit" type="submit">Đăng nhập</button>
+      </form>
+      <p class="hint login-msg" id="loginMsg" role="status" data-bad="0"></p>
+      <div class="actions">
+        <button class="btn sm ghost" id="loginForgot" type="button">Quên mật khẩu</button>
+        <button class="btn sm ghost" id="loginBack" type="button" hidden>Quay lại</button>
+        <button class="btn sm ghost" id="loginOffline" type="button" hidden>Chơi không đăng nhập</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="board" class="panel" hidden aria-labelledby="t-board">
+    <div class="card wide hub">
+      <div class="hub-head">
+        <h2 id="t-board">BẢNG XẾP HẠNG</h2>
+        <span class="tag">THEO CHIẾN LỰC</span>
+      </div>
+      <div class="records" id="boardMe"></div>
+      <ol class="board-list" id="boardList"></ol>
+      <p class="hint" id="boardMsg" role="status" data-bad="0"></p>
+      <p class="hint">Chiến lực là tổng sức mạnh của trang bị đang đeo cùng mọi cấp kỹ năng và chỉ số. Chiến lực càng cao, kẻ địch càng đông, trâu và hung hãn hơn.</p>
+      <div class="actions">
+        <button class="btn sm" id="boardBack" type="button">Quay lại</button>
+        <button class="btn sm ghost" id="boardRefresh" type="button">Làm mới</button>
       </div>
     </div>
   </section>
@@ -419,10 +496,13 @@ function resize() {
 
 /* ---------- Saved records (per viewer, best effort) ---------- */
 const SAVE_KEY = 'neon-survivor-v1';
+const blankData = () => ({ best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {},
+                          inv: [], eq: { weapon: null, armor: null, engine: null, chip: null }, nextId: 1, pending: null,
+                          adminRev: 0, link: null });
 const store = {
-  data: { best: 0, bestTime: 0, bestKills: 0, bestLevel: 1, runs: 0, muted: false, cores: 120, meta: {},
-          inv: [], eq: { weapon: null, armor: null, engine: null, chip: null }, nextId: 1, pending: null,
-          adminRev: 0, link: null },
+  data: blankData(),
+  // A new person on this device starts from nothing (only the sound setting stays), so one account never inherits another's progress.
+  reset() { const muted = this.data.muted; this.data = blankData(); this.data.muted = muted; this.save(); },
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
@@ -572,6 +652,10 @@ const TUNE = {
   swarmFirst: 75, swarmEvery: 60, bossFirst: 150, bossEvery: 120, bossHp: 1100, bossHpStep: 700,
   dash: 45, shooter: 85, tank: 125, splitter: 175   // unlock times (s)
 };
+// Difficulty that follows the build. pw = combat power / POWER.ref: 0 for a new account (gentle opening), 1 for a strong build (full strength),
+// so gear and skills make you stronger without making the game trivial. Each value is how much the factor grows at pw = 1.
+const DIFF = { hp: 4.5, ramp: 300, spd: 0.3, dmg: 3, rate: 1.6, boss: 4, xp: 1.3, cap: 1.3, pow: 1.5 };
+const dmul = (k, g) => 1 + DIFF[k] * g.pw * (k === 'hp' ? 1 + g.t / DIFF.ramp : 1);   // enemy health also keeps pace with the snowballing build as the run goes on
 const ENEMY = {
   drift:    { r: 12, hp: 18,  sp: 72,  dmg: 8,  xp: 1,  col: COL.magenta },
   dash:     { r: 9,  hp: 11,  sp: 150, dmg: 6,  xp: 1,  col: COL.amber },
@@ -651,12 +735,13 @@ const META_GROUPS = [
   { name: 'Khởi đầu trận', hint: '', ids: ['free', 'revive', 'w_nova', 'w_chain', 'w_orbit', 'w_drone'] },
   { name: 'Chỉ số gốc', hint: '', ids: ['vigor', 'power', 'speed', 'magnet', 'greed', 'regen', 'armor', 'dash'] }
 ];
-const xpFor = l => Math.round(3 + l * 2.4 + l * l * 0.28);
+const xpFor = (l, pw) => Math.round((3 + l * 2.4 + l * l * 0.28) * (1 + DIFF.xp * (pw || 0)));   // a strong build levels up more slowly, so it cannot snowball past the enemies
 
 function newRun() {
+  const pw = Math.pow(Math.min(DIFF.cap, powerOf(store.data).total / POWER.ref), DIFF.pow);
   return {
-    t: 0, kills: 0, level: 1, xp: 0, xpNext: xpFor(1), pending: 0, bossN: 0, bossKills: 0, boss: null, newBest: false,
-    meta: Object.assign({}, store.data.meta), gear: gearTotals(), banked: false, score: 0, free: 0, revives: 0, xpMul: 1, earned: 0,
+    t: 0, kills: 0, level: 1, xp: 0, xpNext: xpFor(1, pw), pending: 0, bossN: 0, bossKills: 0, boss: null, newBest: false,
+    meta: Object.assign({}, store.data.meta), gear: gearTotals(), pw, banked: false, score: 0, free: 0, revives: 0, xpMul: 1, earned: 0,
     p: { x: 0, y: 0, vx: 0, vy: 0, r: 13, hp: 100, maxHp: 100, speed: 205, inv: 0, dashT: 0, dashCd: 0, dashMax: 2.2, dx: 1, dy: 0, face: -Math.PI / 2, regen: 0, armor: 0, magnet: 95, dmgMul: 1, crit: 0.08 },
     w: { pulse: 1, orbit: 0, nova: 0, chain: 0, drone: 0 }, pas: {}, evo: {}, drones: [], droneAng: 0, orbitRad: 0,
     wt: { pulse: 0.2, nova: 2, chain: 1, orbitAng: 0, echo: 0, echoDmg: 0 },
@@ -710,10 +795,10 @@ function wpick(list) {
   return list[0][0];
 }
 function spawnEnemy(type, x, y, fixedHp) {
-  const g = G, d = ENEMY[type], hpMul = fixedHp ? 1 : 1 + g.t * TUNE.hpGrow + Math.max(0, g.t - TUNE.lateStart) * TUNE.lateHp;
+  const g = G, d = ENEMY[type], hpMul = fixedHp ? 1 : (1 + g.t * TUNE.hpGrow + Math.max(0, g.t - TUNE.lateStart) * TUNE.lateHp) * dmul('hp', g);
   const e = {
     type, d, x, y, r: d.r, hp: fixedHp || d.hp * hpMul, maxHp: fixedHp || d.hp * hpMul,
-    sp: d.sp * (1 + Math.min(TUNE.speedCap, g.t * TUNE.speedGrow)) * rnd(0.92, 1.08), dmg: d.dmg,
+    sp: d.sp * (1 + Math.min(TUNE.speedCap, g.t * TUNE.speedGrow)) * dmul('spd', g) * rnd(0.92, 1.08), dmg: d.dmg * dmul('dmg', g),
     flash: 0, ob: 0, cd: rnd(0.6, 2), state: 0, st: 0, ang: rnd(0, TAU), rot: 0, kx: 0, ky: 0, tx: 0, ty: 0, dead: false
   };
   g.enemies.push(e);
@@ -731,7 +816,7 @@ function swarm() {
 }
 function spawnBoss() {
   const g = G; g.bossN++;
-  const pos = spawnPos(120), e = spawnEnemy('boss', pos[0], pos[1], TUNE.bossHp + TUNE.bossHpStep * (g.bossN - 1));
+  const pos = spawnPos(120), e = spawnEnemy('boss', pos[0], pos[1], (TUNE.bossHp + TUNE.bossHpStep * (g.bossN - 1)) * dmul('boss', g));
   e.cd = 2; g.boss = e; audio.intense = true;
   audio.play('boss'); banner('OVERLORD XUẤT HIỆN', COL.danger); shake(8);
 }
@@ -739,7 +824,7 @@ function spawnTick(dt) {
   const g = G, t = g.t;
   g.spawnT -= dt;
   if (g.spawnT <= 0 && g.enemies.length < MAX_ENEMIES) {
-    const n = 1 + Math.floor(t / TUNE.groupEvery), rate = Math.min(TUNE.rateMax, TUNE.rate0 + t * TUNE.rateGrow + Math.max(0, t - TUNE.lateStart) * TUNE.lateRate);
+    const n = 1 + Math.floor(t / TUNE.groupEvery), rate = Math.min(TUNE.rateMax, TUNE.rate0 + t * TUNE.rateGrow + Math.max(0, t - TUNE.lateStart) * TUNE.lateRate) * dmul('rate', g);
     g.spawnT = n / rate;
     const table = [['drift', 10]];
     if (t > TUNE.dash) table.push(['dash', 2 + t / 40]);
@@ -776,7 +861,7 @@ function hurtEnemy(e, dmg, ang, push) {
 function gainXp(v) {
   const g = G;
   g.xp += v * g.xpMul;
-  while (g.xp >= g.xpNext) { g.xp -= g.xpNext; g.level++; g.xpNext = xpFor(g.level); g.pending++; }
+  while (g.xp >= g.xpNext) { g.xp -= g.xpNext; g.level++; g.xpNext = xpFor(g.level, g.pw); g.pending++; }
 }
 function dropGems(e) {
   const g = G;
@@ -1005,7 +1090,7 @@ function bossAI(e, dt, nx, ny) {
     e.cd -= dt;
     if (e.cd <= 0) {
       const n = 14 + g.bossN * 2, off = rnd(0, TAU);
-      for (let i = 0; i < n; i++) { const a = off + i / n * TAU; g.eb.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 6, dmg: 12, life: 5, dead: false }); }
+      for (let i = 0; i < n; i++) { const a = off + i / n * TAU; g.eb.push({ x: e.x, y: e.y, vx: Math.cos(a) * 150, vy: Math.sin(a) * 150, r: 6, dmg: Math.round(12 * dmul('dmg', g)), life: 5, dead: false }); }
       e.cd = Math.max(2.2, 3.4 - g.bossN * 0.2);
       audio.play('bossring');
     }
@@ -1036,7 +1121,7 @@ function updateEnemies(dt) {
       e.cd -= dt;
       if (e.cd <= 0 && d < 520) {
         e.cd = rnd(1.8, 2.6);
-        g.eb.push({ x: e.x, y: e.y, vx: nx * 210, vy: ny * 210, r: 5, dmg: 7, life: 3.5, dead: false });
+        g.eb.push({ x: e.x, y: e.y, vx: nx * 210, vy: ny * 210, r: 5, dmg: Math.round(7 * dmul('dmg', g)), life: 3.5, dead: false });
       }
     } else if (e.type === 'boss') {
       const r = bossAI(e, dt, nx, ny); mx = r.mx; my = r.my; sp = r.sp;
@@ -1280,6 +1365,25 @@ function sanitizeGear() {
   d.inv = ok;
   for (const s of SLOTS) { const it = findItem(d.eq[s]); if (!it || it.slot !== s) d.eq[s] = null; }
   d.nextId = Math.max(Math.floor(+d.nextId) || 1, ok.reduce((m, it) => Math.max(m, it.id + 1), 1));
+}
+
+/* ---------- Combat power (Chiến lực) ----------
+   One number for a whole build: equipped gear plus every permanent skill and stat. It orders the leaderboard and it also sets how hard
+   a run is (see DIFF in part-c.js), so buying gear makes you stronger without making the game trivial. It is computed from the saved
+   data only, so the same function can score a save that lives in the cloud. */
+const POWER = { item: 100, subs: 0.35, mastery: 80, start: 150, stat: 50, ref: 8000 };
+function itemPower(it) { return Math.round(POWER.item * RAR[it.rar].mul * (1 + LV_GROW * (it.lv - 1)) * (1 + POWER.subs * it.subs.length)); }
+function metaWeight(id) { return id.indexOf('m_') === 0 ? POWER.mastery : (id === 'free' || id === 'revive' || id.indexOf('w_') === 0) ? POWER.start : POWER.stat; }
+function powerOf(d) {
+  let gear = 0, skills = 0, worn = 0;
+  const inv = Array.isArray(d.inv) ? d.inv : [], eq = d.eq || {};
+  for (const s of SLOTS) {
+    const it = inv.find(x => x && x.id === eq[s] && x.slot === s && RAR[x.rar] && Array.isArray(x.subs));
+    if (it) { gear += itemPower(it); worn++; }
+  }
+  const m = d.meta || {};
+  for (const id in META) skills += metaWeight(id) * Math.min(META[id].max, Math.max(0, Math.floor(+m[id] || 0)));
+  return { gear, skills, worn, total: gear + skills };
 }
 
 /* ---------- Banking a run's rewards (death, quit to menu, restart, closed tab) ---------- */
@@ -1532,7 +1636,8 @@ function bindShop() {
      players/<uid>   the player's own save, written by that player and readable by admins
      adjust/<uid>    changes an admin made for that player, written by admins only and applied by the player's game
    Who may write what is declared as access rules when the page is published, so the server decides, not this code.
-   Without sign-in (guests, public link, no capability) everything keeps working from this browser's storage. */
+   Without sign-in (guests, public link, no capability) everything keeps working from this browser's storage.
+   The same code also runs on top of Firebase: the Firebase bridge (firebase-bridge.js) answers the same `use('db')` / `use('user')` calls. */
 const CORE_CAP = 1000000000;
 const CLOUD_KEYS = ['cores', 'meta', 'inv', 'eq', 'nextId', 'best', 'bestTime', 'bestKills', 'bestLevel', 'runs', 'adminRev'];
 const CLOUD_DELAY = 4000;
@@ -1542,8 +1647,12 @@ const cloud = {
   status: 'local',    // local | connecting | synced | pending | syncing | readonly | error | conflict
   at: 0, timer: 0, busy: false, again: false, retry: 0, ref: null,
   paused: false,      // true while the player has to choose between two different saves
-  readonly: false, conflict: null, adjUnsub: null, rosterUnsub: null, names: {}
+  readonly: false, conflict: null, adjUnsub: null, rosterUnsub: null, names: {},
+  profile: false,     // true when the sign-in provider supplies a profile (Firebase): name and email travel with the save
+  guest: false, verified: true, provider: '', profileSent: '', boardHash: '', adminBusy: false
 };
+const isDenied = e => !!e && (e.code === 'invalid_argument' || e.code === 'permission-denied' || e.code === 'denied');   // the store refused: not allowed to write here
+const shortText = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f<>]/g, ' ').trim().slice(0, n);
 
 /* ----- small helpers ----- */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1596,7 +1705,8 @@ function acctLabel() {
   if (cloud.status === 'connecting') return 'Đang kết nối';
   if (cloud.status === 'conflict') return 'Cần chọn';
   if (!cloud.ready) return 'Khách';
-  return cloud.admin ? 'Quản trị' : 'Đã đăng nhập';
+  if (cloud.guest) return 'Khách (đã lưu)';
+  return cloud.admin ? 'Quản trị' : (cloud.profile ? displayName() : 'Đã đăng nhập');
 }
 function statusText() {
   switch (cloud.status) {
@@ -1636,17 +1746,54 @@ async function cloudPush() {
       const cur = await cloud.ref.get();
       if (cur.exists && snapHash(normalizeCloud(cur.data())) !== l.h) { cloud.busy = false; await cloudReconcile(); return; }
     }
-    await cloud.ref.set(Object.assign({}, snap, { updated: Date.now() }));
+    const pf = profileFields();
+    await cloud.ref.set(Object.assign({}, snap, { updated: Date.now() }, pf));
+    cloud.profileSent = canon(pf);
     store.data.link = { uid: cloud.id, h }; store.save();
     cloud.at = Date.now(); cloud.retry = 0; setStatus('synced');
+    pushBoard(snap);
   } catch (e) {
-    if (e && e.code === 'invalid_argument') { cloud.readonly = true; setStatus('readonly'); }
+    if (isDenied(e)) { cloud.readonly = true; setStatus('readonly'); }
     else { cloud.retry = Math.min(cloud.retry + 1, 6); setStatus('error'); schedule(15000 * cloud.retry, true); }
   }
   cloud.busy = false;
   if (cloud.again) { cloud.again = false; cloudTouch(); }
 }
 function cloudFlush() { if (cloud.timer) { clearTimeout(cloud.timer); cloud.timer = 0; cloudPush(); } }
+const cloudInSync = () => { const l = store.data.link; return !!(cloud.ready && l && l.uid === cloud.id && l.h === snapHash(cloudSnapshot())); };
+// Like cloudFlush, but waits until the upload is finished (used before signing out, when nothing may be lost).
+async function cloudFlushNow() {
+  if (!cloud.ready || cloud.paused || cloud.readonly) return;
+  if (cloud.timer) { clearTimeout(cloud.timer); cloud.timer = 0; }
+  if (!cloudInSync()) await cloudPush();
+  for (let i = 0; i < 60 && cloud.busy; i++) await new Promise(r => setTimeout(r, 100));
+}
+
+/* ----- profile and leaderboard entry (only when the sign-in provider has a profile, i.e. Firebase) ----- */
+function displayName() { return cloud.name || (cloud.email ? cloud.email.split('@')[0] : '') || (cloud.guest ? 'Khách ' + String(cloud.id || '').slice(0, 4) : 'Người chơi'); }
+function profileFields() { return cloud.profile ? { name: shortText(displayName(), 40), email: shortText(cloud.email, 120), guest: !!cloud.guest } : {}; }
+// Name or sign-in details changed (a guest linked an account, a name was set): tell the cloud without touching the save itself.
+async function cloudProfileSync() {
+  if (!cloud.ready || cloud.paused || cloud.readonly || !cloud.profile) return;
+  const pf = profileFields(), h = canon(pf);
+  if (h !== cloud.profileSent) {
+    try { await cloud.ref.update(pf); cloud.profileSent = h; } catch (e) { /* no save document yet: the first full upload carries the profile */ }
+  }
+  pushBoard(cloudSnapshot());
+}
+const POWER_MAX = 20000;   // above any reachable build; the store rules use the same bound
+function boardDoc(snap) {
+  const pw = powerOf(snap);
+  return { name: shortText(displayName(), 40), power: Math.min(POWER_MAX, pw.total), gear: Math.min(POWER_MAX, pw.gear), skills: Math.min(POWER_MAX, pw.skills),
+           best: snap.best, bestTime: snap.bestTime, bestLevel: snap.bestLevel, runs: snap.runs };
+}
+async function pushBoard(snap) {
+  if (!cloud.ready || cloud.paused || cloud.readonly || !cloud.db) return;
+  const d = boardDoc(snap), h = hash32(canon(d));
+  if (h === cloud.boardHash) return;
+  try { await cloud.db.doc('board/' + cloud.id).set(Object.assign({}, d, { updated: Date.now() })); cloud.boardHash = h; }
+  catch (e) { /* the leaderboard is optional: the next save tries again */ }
+}
 
 /* ----- download and reconcile ----- */
 function adoptCloud(raw, ch) {
@@ -1658,6 +1805,7 @@ function adoptCloud(raw, ch) {
   store.save();
   cloud.at = Date.now(); setStatus('synced');
   updateMenu(); if (state === 'shop') renderShop();
+  cloudProfileSync();
 }
 async function cloudReconcile() {
   setStatus('connecting');
@@ -1667,7 +1815,7 @@ async function cloudReconcile() {
   if (!snap.exists) { await cloudPush(); watchAdjust(); return; }          // first save for this account
   const raw = snap.data(), cdoc = normalizeCloud(raw), ch = snapHash(cdoc);
   const link = d.link && d.link.uid === cloud.id ? d.link : null;
-  if (ch === lh) { d.link = { uid: cloud.id, h: ch }; store.save(); cloud.at = Date.now(); setStatus('synced'); watchAdjust(); return; }
+  if (ch === lh) { d.link = { uid: cloud.id, h: ch }; store.save(); cloud.at = Date.now(); setStatus('synced'); watchAdjust(); cloudProfileSync(); return; }
   if (link && link.h === lh) { adoptCloud(raw, ch); watchAdjust(); return; }      // only the account moved on (another device, or an admin)
   if (link && link.h === ch) { await cloudPush(); watchAdjust(); return; }        // only this device moved on
   if (!link && isFreshSave()) { adoptCloud(raw, ch); watchAdjust(); return; }     // new device, nothing to lose
@@ -1710,8 +1858,21 @@ function watchAdjust() {
 }
 
 /* ----- connect ----- */
-async function cloudStart() {
-  const C = window.claude;
+function cloudReset() {   // signed out: forget everything about the account (the save on this device is handled by the caller)
+  if (cloud.timer) clearTimeout(cloud.timer);
+  for (const k of ['adjUnsub', 'rosterUnsub']) { if (cloud[k]) { try { cloud[k](); } catch (e) { /* ignore */ } } }
+  Object.assign(cloud, {
+    db: null, user: null, id: null, name: '', email: '', admin: false, owner: false, ready: false, status: 'local', at: 0, timer: 0, busy: false, again: false,
+    retry: 0, ref: null, paused: false, readonly: false, conflict: null, adjUnsub: null, rosterUnsub: null, names: {}, profile: false, guest: false, verified: true,
+    provider: '', profileSent: '', boardHash: '', adminBusy: false
+  });
+  store.onSave = null;
+  roster = []; admSel = null; admBase = null; admDirty = false;
+  refreshAcct();
+}
+// `C` offers use('db') and use('user'): the platform's `window.claude`, or the Firebase bridge, which answers the same calls.
+async function cloudStart(C) {
+  C = C || window.claude;
   if (!C || typeof C.use !== 'function') return;
   setStatus('connecting');
   let db = null, user = null;
@@ -1721,6 +1882,7 @@ async function cloudStart() {
   try { me = await user.me(); } catch (e) { /* ignore */ }
   if (!me || !me.id) { setStatus('local'); return; }
   cloud.db = db; cloud.user = user; cloud.id = me.id; cloud.name = me.name || ''; cloud.email = String(me.email || '').toLowerCase();
+  cloud.profile = !!me.profile; cloud.guest = !!me.guest; cloud.verified = me.emailVerified !== false; cloud.provider = String(me.provider || '');
   try { cloud.admin = !!(await user.canEdit()); cloud.owner = !!(await user.isOwner()); } catch (e) { /* ignore */ }
   let w = null; try { w = await user.can('data.write'); } catch (e) { /* ignore */ }
   cloud.readonly = w === false;
@@ -1739,31 +1901,35 @@ function refreshAcct() {
   renderAcct();
 }
 function renderAcct() {
-  const who = cloud.ready ? (cloud.name || 'Tài khoản của bạn') : 'Khách';
+  const who = cloud.ready ? (cloud.profile ? displayName() : (cloud.name || 'Tài khoản của bạn')) : 'Khách';
   els.acctName.textContent = who;
   els.acctStatus.textContent = statusText();
   els.acctStatus.setAttribute && els.acctStatus.setAttribute('data-s', cloud.status);
   let txt;
-  if (cloud.ready && cloud.readonly) txt = 'Tài khoản này chỉ có quyền xem trang nên chưa thể lưu lên tài khoản. Hãy nhờ chủ trang cấp quyền Cộng tác viên (Contributor) để lưu tiến trình trên mọi thiết bị.';
+  if (cloud.ready && cloud.guest) txt = 'Bạn đang chơi bằng tài khoản khách. Tiến trình vẫn được lưu lên đám mây, nhưng nếu bạn đăng xuất hoặc xóa dữ liệu trình duyệt thì tài khoản khách này sẽ mất. Hãy liên kết Google hoặc email để giữ tiến trình lâu dài.';
+  else if (cloud.ready && cloud.readonly) txt = 'Tài khoản này chỉ có quyền xem trang nên chưa thể lưu lên tài khoản. Hãy nhờ chủ trang cấp quyền Cộng tác viên (Contributor) để lưu tiến trình trên mọi thiết bị.';
   else if (cloud.ready) txt = 'Lõi, kỹ năng, chỉ số và trang bị của bạn được lưu theo tài khoản, nên mở trò chơi trên máy khác vẫn thấy đủ.';
   else if (cloud.status === 'connecting') txt = 'Đang kiểm tra bạn đã đăng nhập chưa.';
   else txt = 'Đăng nhập tài khoản Claude trước khi mở trang này để lưu tiến trình lên tài khoản. Khi chưa đăng nhập, bạn vẫn chơi bình thường và tiến trình lưu trên trình duyệt này.';
-  if (cloud.ready && cloud.admin) txt += ' Quyền quản trị thuộc về chủ trang và các tài khoản được chia sẻ quyền Editor (dự kiến: hpmainho20@gmail.com). Máy chủ kiểm tra quyền này mỗi khi gửi thay đổi.';
+  if (cloud.ready && cloud.admin) txt += cloud.profile
+    ? ' Tài khoản này là quản trị viên: bạn có thể chỉnh Lõi, chỉ số và kỹ năng của người chơi. Máy chủ kiểm tra quyền này ở mỗi thay đổi.'
+    : ' Quyền quản trị thuộc về chủ trang và các tài khoản được chia sẻ quyền Editor (dự kiến: hpmainho20@gmail.com). Máy chủ kiểm tra quyền này mỗi khi gửi thay đổi.';
   els.acctText.textContent = txt;
-  const role = cloud.ready ? (cloud.admin ? 'Vai trò: quản trị viên' : 'Vai trò: người chơi') + (cloud.email ? ' · ' + cloud.email : '') : '';
+  const role = cloud.ready ? (cloud.admin ? 'Vai trò: quản trị viên' : 'Vai trò: người chơi') + (cloud.email ? ' · ' + cloud.email : '') + ' · Chiến lực ' + powerOf(store.data).total : '';
   els.acctRole.textContent = role; els.acctRole.hidden = !role;
   const c = cloud.conflict;
   els.acctConflict.hidden = !c;
   if (c) { els.confLocal.textContent = summarize(c.local); els.confCloud.textContent = summarize(c.cloud); }
   els.syncBtn.hidden = !(cloud.ready && !cloud.readonly && !cloud.paused);
   els.adminBtn.hidden = !(cloud.ready && cloud.admin);
+  authRender();
 }
 function openAcct() { if (state !== 'menu') return; state = 'acct'; renderAcct(); showPanel('acct'); audio.play('ui'); }
 function closeAcct() { if (state !== 'acct') return; state = 'menu'; updateMenu(); showPanel('menu'); audio.play('ui'); }
 
 /* ---------- Admin panel ---------- */
 let roster = [], admSel = null, admBase = null, admDirty = false;
-const admLabel = (e, i) => { const n = cloud.names[e.id] || {}; return (n.name || n.email || 'Người chơi ' + (i + 1)) + (e.id === cloud.id ? ' (bạn)' : '') + ' · ' + e.d.cores + ' Lõi'; };
+const admLabel = (e, i) => { const n = cloud.names[e.id] || {}; return (e.name || e.email || n.name || n.email || 'Người chơi ' + (i + 1)) + (e.id === cloud.id ? ' (bạn)' : '') + ' · ' + e.d.cores + ' Lõi'; };
 function admMsg(t, bad) { els.adminMsg.textContent = t; els.adminMsg.setAttribute && els.adminMsg.setAttribute('data-bad', bad ? '1' : '0'); }
 function renderAdminPick() {
   els.adminPick.innerHTML = roster.length
@@ -1787,13 +1953,13 @@ function renderAdminForm(force) {
   admDirty = false;
 }
 function onRoster(snap) {
-  roster = snap.docs.map(s => { const raw = s.data() || {}; return { id: s.id, d: normalizeCloud(raw) || normalizeCloud({}), updated: Number.isFinite(+raw.updated) ? +raw.updated : 0 }; });
+  roster = snap.docs.map(s => { const raw = s.data() || {}; return { id: s.id, d: normalizeCloud(raw) || normalizeCloud({}), updated: Number.isFinite(+raw.updated) ? +raw.updated : 0, name: shortText(raw.name, 40), email: shortText(raw.email, 120) }; });
   roster.sort((a, b) => b.updated - a.updated);
   if (!roster.some(e => e.id === admSel)) { admSel = roster.length ? roster[0].id : null; admDirty = false; }
   renderAdminPick(); renderAdminForm(false);
   els.adminWho.textContent = (cloud.email || 'quản trị viên') + ' · ' + roster.length + ' người chơi';
   const ids = roster.map(e => e.id).filter(id => !cloud.names[id]);
-  if (ids.length && cloud.user) {
+  if (ids.length && cloud.user && typeof cloud.user.profiles === 'function') {
     cloud.user.profiles(ids).then(ps => {
       for (const id of ids) { const p = ps && ps[id]; cloud.names[id] = { name: p ? p.name || '' : '', email: p ? p.email || '' : '' }; }
       if (state === 'admin') renderAdminPick();
@@ -1841,7 +2007,7 @@ async function adminApply() {
     admMsg('Đã gửi. Người chơi nhận thay đổi ngay khi mở trò chơi.', false);
     audio.play('pickup');
   } catch (e) {
-    admMsg(e && e.code === 'invalid_argument' ? 'Máy chủ từ chối: tài khoản này không có quyền quản trị.' : 'Gửi chưa được, hãy thử lại sau ít giây.', true);
+    admMsg(isDenied(e) ? 'Máy chủ từ chối: tài khoản này không có quyền quản trị.' : 'Gửi chưa được, hãy thử lại sau ít giây.', true);
   }
   cloud.adminBusy = false; els.adminApply.disabled = false;
 }
@@ -1864,6 +2030,264 @@ function initAccountUi() {
   els.adminMax.addEventListener('click', () => adminMaxAll());
   els.adminPick.addEventListener('change', e => { admSel = e.target && e.target.value ? e.target.value : null; admDirty = false; admMsg(''); renderAdminForm(true); });
   els.adminForm.addEventListener('input', () => { admDirty = true; });
+}
+
+/* ---------- Sign-in gate (Firebase build) ----------
+   In the Firebase build (firebase-config.js defines window.NS_FIREBASE) nobody reaches the menu without an account: Google, a guest account,
+   or email and password (register or sign in). Firebase keeps the session, so the gate only shows when nobody is signed in.
+   The page never handles the Google or email credentials itself: it hands them to the Firebase bridge (firebase-bridge.js).
+   Without that config (the Claude artifact) none of this runs and the platform account is used instead. */
+const auth = { on: !!(window.NS_FIREBASE || window.NS_GATE), p: null, mode: 'gate', tab: 'in', busy: false, loading: false, was: false, needLogin: false, confirmOut: false, failed: '' };
+const LOGIN_FIELDS = ['loginGoogle', 'loginGuest', 'loginTabIn', 'loginTabUp', 'loginName', 'loginEmail', 'loginPass', 'loginSubmit', 'loginForgot', 'loginBack'];
+const AUTH_MSG = {
+  'auth/invalid-email': 'Email chưa đúng định dạng.',
+  'auth/missing-email': 'Hãy nhập email.',
+  'auth/missing-password': 'Hãy nhập mật khẩu.',
+  'auth/weak-password': 'Mật khẩu quá yếu: cần ít nhất 6 ký tự.',
+  'auth/email-already-in-use': 'Email này đã có tài khoản. Hãy chuyển sang Đăng nhập.',
+  'auth/invalid-credential': 'Email hoặc mật khẩu chưa đúng.',
+  'auth/wrong-password': 'Email hoặc mật khẩu chưa đúng.',
+  'auth/user-not-found': 'Email hoặc mật khẩu chưa đúng.',
+  'auth/invalid-login-credentials': 'Email hoặc mật khẩu chưa đúng.',
+  'auth/user-disabled': 'Tài khoản này đã bị khóa.',
+  'auth/too-many-requests': 'Thử quá nhiều lần. Hãy đợi một lúc rồi thử lại.',
+  'auth/network-request-failed': 'Không kết nối được mạng. Kiểm tra internet rồi thử lại.',
+  'auth/popup-closed-by-user': 'Bạn đã đóng cửa sổ đăng nhập.',
+  'auth/cancelled-popup-request': 'Cửa sổ đăng nhập trước đó chưa đóng. Hãy thử lại.',
+  'auth/popup-blocked': 'Trình duyệt đã chặn cửa sổ đăng nhập. Hãy cho phép cửa sổ bật lên rồi thử lại.',
+  'auth/operation-not-allowed': 'Cách đăng nhập này chưa được bật trong Firebase Console (mục Authentication).',
+  'auth/admin-restricted-operation': 'Chế độ khách chưa được bật trong Firebase Console (Authentication, Anonymous).',
+  'auth/unauthorized-domain': 'Tên miền này chưa nằm trong Authorized domains của Firebase Authentication.',
+  'auth/credential-already-in-use': 'Tài khoản này đã gắn với người chơi khác. Hãy đăng xuất rồi đăng nhập bằng nó.',
+  'auth/email-already-exists': 'Email này đã có tài khoản.',
+  'auth/account-exists-with-different-credential': 'Email này đã đăng ký bằng cách khác. Hãy đăng nhập bằng cách đó.',
+  'auth/provider-already-linked': 'Tài khoản này đã được liên kết rồi.',
+  'auth/requires-recent-login': 'Hãy đăng nhập lại rồi thử tiếp.',
+  'auth/invalid-api-key': 'Cấu hình Firebase chưa đúng (apiKey).'
+};
+const authMessage = e => AUTH_MSG[e && e.code] || ('Chưa thực hiện được' + (e && e.code ? ' (' + e.code + ')' : '') + '. Hãy thử lại.');
+const fmtInt = n => String(Math.max(0, Math.floor(+n || 0))).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+function loginMsg(t, bad) { els.loginMsg.textContent = t || ''; els.loginMsg.setAttribute && els.loginMsg.setAttribute('data-bad', bad ? '1' : '0'); }
+function setLoginBusy(b) { auth.busy = b; for (const id of LOGIN_FIELDS) if (els[id]) els[id].disabled = b || (!auth.p && id !== 'loginBack'); }
+function renderLogin() {
+  const link = auth.mode === 'link', up = link || auth.tab === 'up';
+  els.loginTitle.textContent = link ? 'LIÊN KẾT TÀI KHOẢN' : 'ĐĂNG NHẬP ĐỂ CHƠI';
+  els.loginLead.textContent = link
+    ? 'Gắn tài khoản khách này với Google hoặc email để giữ tiến trình lâu dài. Lõi, trang bị và kỹ năng hiện có được giữ nguyên.'
+    : 'Chọn một cách vào trò chơi. Tiến trình được lưu theo tài khoản nên đăng nhập ở máy nào cũng thấy đủ.';
+  els.loginGoogle.textContent = link ? 'Liên kết với Google' : 'Đăng nhập bằng Google';
+  els.loginGuest.hidden = link;
+  els.loginTabs.hidden = link;
+  els.loginTabIn.setAttribute('aria-pressed', up ? 'false' : 'true');
+  els.loginTabUp.setAttribute('aria-pressed', up ? 'true' : 'false');
+  els.loginNameRow.hidden = !up;
+  els.loginPass.setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+  els.loginSubmit.textContent = link ? 'Tạo tài khoản và liên kết' : up ? 'Tạo tài khoản' : 'Đăng nhập';
+  els.loginForgot.hidden = up;
+  els.loginBack.hidden = !link;
+  els.loginOffline.hidden = !auth.failed;
+}
+function waitProvider() {   // the bridge announces itself with window.NSAuth and a 'nsauth' event
+  return new Promise(resolve => {
+    if (window.NSAuth) { resolve(window.NSAuth); return; }
+    let done = false;
+    const fin = v => { if (!done) { done = true; resolve(v); } };
+    window.addEventListener('nsauth', () => fin(window.NSAuth));
+    setTimeout(() => fin(null), 15000);
+  });
+}
+const FAIL_TEXT = {
+  config: 'Chưa cấu hình Firebase: hãy điền các giá trị của dự án vào firebase-config.js (xem README).',
+  sdk: 'Không tải được Firebase. Hãy kiểm tra kết nối mạng rồi tải lại trang.',
+  init: 'Không khởi tạo được Firebase. Kiểm tra lại cấu hình trong firebase-config.js.',
+  timeout: 'Firebase phản hồi quá chậm. Hãy kiểm tra mạng rồi tải lại trang.'
+};
+async function authStart() {
+  state = 'login'; auth.mode = 'gate'; renderLogin(); setLoginBusy(true); showPanel('login');
+  loginMsg('Đang kiểm tra đăng nhập…');
+  const p = await waitProvider();
+  if (!p || !p.ok) {
+    auth.failed = (p && p.reason) || 'timeout';
+    renderLogin(); setLoginBusy(true);
+    loginMsg(FAIL_TEXT[auth.failed] || FAIL_TEXT.init, true);
+    return;
+  }
+  auth.p = p;
+  p.onChange(u => { onAuthChange(u); });   // fires once with the stored session (or null), then on every sign-in or sign-out
+}
+function enterLogin() {   // nobody is signed in: show the gate
+  auth.needLogin = false; auth.confirmOut = false;
+  cloudReset();
+  if (auth.was) { store.reset(); auth.was = false; }   // the next person on this device starts from nothing
+  auth.mode = 'gate'; state = 'login';
+  setLoginBusy(false); renderLogin(); loginMsg('');
+  els.loginPass.value = '';
+  updateMenu(); showPanel('login');
+}
+async function onAuthChange(u) {
+  if (auth.loading) { auth.queued = [u]; return; }   // an account is still loading: handle the newest change once it is done
+  if (!u) {
+    if (isHub() || state === 'login') enterLogin(); else auth.needLogin = true;   // a run in progress is never cut off
+    return;
+  }
+  if (cloud.ready && cloud.id === u.id) {   // same account: name, linked provider or e-mail verification changed
+    cloud.name = u.name || ''; cloud.email = String(u.email || '').toLowerCase(); cloud.guest = !!u.guest;
+    cloud.verified = u.emailVerified !== false; cloud.provider = String(u.provider || ''); cloud.admin = !!u.admin;
+    cloudProfileSync();
+    if (state === 'login') { auth.mode = 'gate'; setLoginBusy(false); state = 'acct'; renderAcct(); showPanel('acct'); }
+    refreshAcct(); updateMenu();
+    return;
+  }
+  if (cloud.ready) cloudReset();
+  const l = store.data.link;
+  if (l && l.uid !== u.id) store.reset();   // this device still holds another account's progress
+  auth.was = true;
+  auth.loading = true; setLoginBusy(true); loginMsg('Đang tải tài khoản…');
+  try { await cloudStart(auth.p.platform); } finally { auth.loading = false; }
+  if (auth.queued) { const q = auth.queued[0]; auth.queued = null; setLoginBusy(false); await onAuthChange(q); return; }
+  setLoginBusy(false); loginMsg('');
+  if (state === 'login') { state = 'menu'; updateMenu(); showPanel('menu'); }
+}
+async function authRun(fn) {   // runs one sign-in action with the form locked; failures are shown in words
+  if (auth.busy || !auth.p) return;
+  setLoginBusy(true); loginMsg('Đang xử lý…');
+  try { await fn(); loginMsg(''); } catch (e) { loginMsg(authMessage(e), true); }
+  if (!auth.loading) setLoginBusy(false);   // when a sign-in succeeded, onAuthChange keeps the form locked until the account has loaded
+}
+function readLoginForm() { return { name: shortText(els.loginName.value, 40), email: String(els.loginEmail.value || '').trim(), pass: String(els.loginPass.value || '') }; }
+function loginSubmit() {
+  const f = readLoginForm(), link = auth.mode === 'link', up = link || auth.tab === 'up';
+  if (!f.email) { loginMsg(AUTH_MSG['auth/missing-email'], true); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) { loginMsg(AUTH_MSG['auth/invalid-email'], true); return; }
+  if (!f.pass) { loginMsg(AUTH_MSG['auth/missing-password'], true); return; }
+  if (up && f.pass.length < 6) { loginMsg(AUTH_MSG['auth/weak-password'], true); return; }
+  authRun(() => (link ? auth.p.linkEmail(f.name, f.email, f.pass) : up ? auth.p.signUpEmail(f.name, f.email, f.pass) : auth.p.signInEmail(f.email, f.pass)));
+}
+async function loginForgot() {
+  const f = readLoginForm();
+  if (!f.email) { loginMsg('Nhập email của bạn ở ô bên trên rồi bấm Quên mật khẩu.', true); return; }
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email)) { loginMsg(AUTH_MSG['auth/invalid-email'], true); return; }
+  if (auth.busy || !auth.p) return;
+  setLoginBusy(true); loginMsg('Đang gửi…');
+  try { await auth.p.resetPassword(f.email); loginMsg('Nếu email này có tài khoản, thư đặt lại mật khẩu đã được gửi. Hãy kiểm tra cả hộp thư rác.'); }
+  catch (e) { loginMsg(authMessage(e), true); }
+  setLoginBusy(false);
+}
+function setLoginTab(tab) { if (auth.busy) return; auth.tab = tab; loginMsg(''); renderLogin(); }
+function openLink() {   // a guest upgrades to Google or email: same account, same progress
+  if (state !== 'acct' || !auth.p || !cloud.guest) return;
+  auth.mode = 'link'; state = 'login'; setLoginBusy(false); renderLogin(); loginMsg(''); showPanel('login'); audio.play('ui');
+}
+function closeLink() {
+  if (state !== 'login' || auth.mode !== 'link' || auth.busy) return;
+  auth.mode = 'gate'; state = 'acct'; renderAcct(); showPanel('acct'); audio.play('ui');
+}
+function acctNote(t, bad) { els.acctNote.textContent = t || ''; els.acctNote.hidden = !t; els.acctNote.setAttribute && els.acctNote.setAttribute('data-bad', bad ? '1' : '0'); }
+async function signOutFlow() {
+  if (!auth.p || auth.busy || !cloud.ready) return;
+  if (cloud.guest && !auth.confirmOut) { auth.confirmOut = true; authRender(); acctNote('Tài khoản khách sẽ mất cùng toàn bộ tiến trình khi đăng xuất. Hãy liên kết Google hoặc email trước, hoặc bấm lần nữa để đăng xuất.', true); return; }
+  auth.confirmOut = false; authRender(); acctNote('Đang lưu tiến trình…');
+  await cloudFlushNow();
+  if (!cloud.guest && !cloudInSync() && !cloud.paused) { acctNote('Chưa lưu được tiến trình lên tài khoản nên chưa đăng xuất. Hãy kiểm tra mạng rồi thử lại.', true); return; }
+  try { await auth.p.signOut(); acctNote(''); } catch (e) { acctNote('Chưa đăng xuất được. Hãy thử lại.', true); }   // onChange(null) shows the gate
+}
+async function verifyFlow() {
+  if (!auth.p) return;
+  try { await auth.p.sendVerification(); acctNote('Đã gửi email xác minh tới ' + cloud.email + '. Hãy mở thư và bấm vào liên kết, rồi đăng nhập lại.'); }
+  catch (e) { acctNote(authMessage(e), true); }
+}
+function authRender() {   // account panel: the sign-in related buttons
+  if (!els.signOutBtn) return;
+  const fb = auth.on && !!auth.p && cloud.ready;
+  els.signOutBtn.hidden = !fb;
+  els.signOutBtn.textContent = auth.confirmOut ? 'Xác nhận đăng xuất' : 'Đăng xuất';
+  els.linkBtn.hidden = !(fb && cloud.guest);
+  els.verifyBtn.hidden = !(fb && !cloud.guest && cloud.provider === 'password' && !cloud.verified);
+  if (state !== 'acct') { auth.confirmOut = false; }
+}
+
+/* ---------- Leaderboard (Bảng xếp hạng chiến lực) ----------
+   Each signed-in player publishes one small entry, board/<uid>: name, combat power and a few records. Anyone signed in can read the
+   list; only the owner of an entry writes it (and an admin may remove one). The numbers come from the player's own game, so the store
+   rules cap every field; it is a friendly ranking, not a tournament. */
+let boardRows = [], boardBusy = false;
+function normalizeBoard(raw, id) {
+  if (!raw || typeof raw !== 'object') return null;
+  const n = v => (Number.isFinite(+v) ? Math.max(0, Math.floor(+v)) : 0);
+  return { id, name: shortText(raw.name, 40) || 'Người chơi', power: Math.min(POWER_MAX, n(raw.power)), gear: Math.min(POWER_MAX, n(raw.gear)), skills: Math.min(POWER_MAX, n(raw.skills)),
+           best: n(raw.best), bestTime: n(raw.bestTime), bestLevel: Math.max(1, n(raw.bestLevel)), runs: n(raw.runs) };
+}
+function boardNote(t, bad) { els.boardMsg.textContent = t || ''; els.boardMsg.setAttribute && els.boardMsg.setAttribute('data-bad', bad ? '1' : '0'); }
+function renderBoardMe() {
+  const pw = powerOf(store.data);
+  const rank = cloud.ready ? boardRows.findIndex(r => r.id === cloud.id) : -1;
+  els.boardMe.innerHTML = '<div class="rec"><span class="tag">CHIẾN LỰC CỦA BẠN</span><b>' + fmtInt(pw.total) + '</b></div>' +
+    '<div class="rec"><span class="tag">TRANG BỊ ĐEO</span><b>' + fmtInt(pw.gear) + '</b></div>' +
+    '<div class="rec"><span class="tag">KỸ NĂNG</span><b>' + fmtInt(pw.skills) + '</b></div>' +
+    '<div class="rec"><span class="tag">HẠNG</span><b>' + (rank >= 0 ? '#' + (rank + 1) : '–') + '</b></div>';
+}
+function renderBoardList() {
+  if (!boardRows.length) { els.boardList.innerHTML = ''; return; }
+  els.boardList.innerHTML = boardRows.map((r, i) => {
+    const me = cloud.ready && r.id === cloud.id;
+    return '<li class="brow' + (me ? ' me' : '') + (i < 3 ? ' top' : '') + '"><span class="rk">' + (i + 1) + '</span>' +
+      '<span class="nm">' + esc(r.name) + (me ? ' (bạn)' : '') + '<small>Trang bị ' + fmtInt(r.gear) + ' · Kỹ năng ' + fmtInt(r.skills) + ' · Điểm cao ' + fmtInt(r.best) + ' · Cấp ' + r.bestLevel + '</small></span>' +
+      '<b>' + fmtInt(r.power) + '</b>' + (cloud.admin ? '<button class="xbtn" type="button" data-del="' + esc(r.id) + '" aria-label="Xóa ' + esc(r.name) + ' khỏi bảng">✕</button>' : '') + '</li>';
+  }).join('');
+}
+function readBoard() {   // one reading of the list, taken from a live query that is closed as soon as it answers
+  return new Promise((resolve, reject) => {
+    let un = null, done = false;
+    const fin = (fn, v) => { if (done) return; done = true; if (un) { try { un(); } catch (e) { /* ignore */ } } fn(v); };
+    try {
+      un = cloud.db.collection('board').orderBy('power', 'desc').limit(50).onSnapshot(s => fin(resolve, s), e => fin(reject, e));
+      if (done && un) { try { un(); } catch (e) { /* ignore */ } }
+    } catch (e) { reject(e); }
+  });
+}
+async function loadBoard() {
+  renderBoardMe();
+  if (!cloud.ready) { boardRows = []; renderBoardList(); boardNote(auth.on ? 'Hãy đăng nhập để có tên trên bảng xếp hạng.' : 'Đăng nhập tài khoản Claude trước khi mở trang để tham gia bảng xếp hạng.', false); return; }
+  if (boardBusy) return;
+  boardBusy = true; boardNote('Đang tải bảng xếp hạng…'); els.boardRefresh.disabled = true;
+  try {
+    await pushBoard(cloudSnapshot());   // make sure our own latest entry is in the list
+    const snap = await readBoard();
+    boardRows = snap.docs.map(d => normalizeBoard(d.data(), d.id)).filter(Boolean).sort((a, b) => b.power - a.power || b.best - a.best);
+    renderBoardList(); renderBoardMe();
+    boardNote(boardRows.length ? 'Cập nhật lúc ' + fmtClock(Date.now()) + '. Hiển thị tối đa 50 người.' : 'Chưa có ai trên bảng xếp hạng.');
+  } catch (e) { boardNote('Không tải được bảng xếp hạng. Hãy thử lại sau.', true); }
+  boardBusy = false; els.boardRefresh.disabled = false;
+}
+async function boardRemove(id) {
+  if (!cloud.ready || !cloud.admin || !id) return;
+  try { await cloud.db.doc('board/' + id).delete(); boardRows = boardRows.filter(r => r.id !== id); renderBoardList(); renderBoardMe(); boardNote('Đã xóa khỏi bảng xếp hạng.'); }
+  catch (e) { boardNote(isDenied(e) ? 'Máy chủ từ chối: chỉ quản trị viên được xóa.' : 'Chưa xóa được, hãy thử lại.', true); }
+}
+function openBoard() { if (state !== 'menu') return; state = 'board'; boardRows = []; renderBoardList(); renderBoardMe(); showPanel('board'); audio.play('ui'); loadBoard(); }
+function closeBoard() { if (state !== 'board') return; state = 'menu'; updateMenu(); showPanel('menu'); audio.play('ui'); }
+
+function initAuthUi() {
+  ['login', 'loginTitle', 'loginLead', 'loginGoogle', 'loginGuest', 'loginTabs', 'loginTabIn', 'loginTabUp', 'loginForm', 'loginNameRow', 'loginName', 'loginEmail', 'loginPass',
+   'loginSubmit', 'loginMsg', 'loginForgot', 'loginBack', 'loginOffline', 'signOutBtn', 'linkBtn', 'verifyBtn', 'acctNote',
+   'board', 'boardMe', 'boardList', 'boardMsg', 'boardBack', 'boardRefresh', 'boardBtn', 'recPower'].forEach(id => { els[id] = $(id); });
+  els.loginGoogle.addEventListener('click', () => authRun(() => (auth.mode === 'link' ? auth.p.linkGoogle() : auth.p.signInGoogle())));
+  els.loginGuest.addEventListener('click', () => authRun(() => auth.p.signInGuest()));
+  els.loginTabIn.addEventListener('click', () => setLoginTab('in'));
+  els.loginTabUp.addEventListener('click', () => setLoginTab('up'));
+  els.loginForm.addEventListener('submit', e => { if (e && e.preventDefault) e.preventDefault(); loginSubmit(); });
+  els.loginForgot.addEventListener('click', () => loginForgot());
+  els.loginBack.addEventListener('click', () => closeLink());
+  els.loginOffline.addEventListener('click', () => { if (state === 'login' && auth.failed) { state = 'menu'; updateMenu(); showPanel('menu'); } });   // Firebase not reachable: play on this device only
+  els.signOutBtn.addEventListener('click', () => signOutFlow());
+  els.linkBtn.addEventListener('click', () => openLink());
+  els.verifyBtn.addEventListener('click', () => verifyFlow());
+  els.boardBtn.addEventListener('click', () => openBoard());
+  els.boardBack.addEventListener('click', () => closeBoard());
+  els.boardRefresh.addEventListener('click', () => loadBoard());
+  els.boardList.addEventListener('click', e => { const b = e.target && e.target.closest ? e.target.closest('[data-del]') : null; if (b) boardRemove(b.getAttribute('data-del')); });
+  setInterval(() => { if (auth.needLogin && isHub()) enterLogin(); }, 1000);   // the session ended during a run: show the gate once it is over
 }
 
 /* ---------- Rendering ---------- */
@@ -2102,8 +2526,8 @@ function hud() {
   els.hurt.style.opacity = REDUCE ? String(g.flash * 0.3) : String(g.flash * 0.9);
 }
 
-const PANELS = ['menu', 'shop', 'acct', 'admin', 'levelup', 'pause', 'over'];
-const isHub = () => state === 'menu' || state === 'shop' || state === 'acct' || state === 'admin';   // screens drawn over the idle backdrop
+const PANELS = ['menu', 'shop', 'acct', 'admin', 'login', 'board', 'levelup', 'pause', 'over'];
+const isHub = () => state === 'menu' || state === 'shop' || state === 'acct' || state === 'admin' || state === 'login' || state === 'board';   // screens drawn over the idle backdrop
 function showPanel(id) { for (const k of PANELS) $(k).hidden = k !== id; }
 function hidePanels() { for (const k of PANELS) $(k).hidden = true; }
 
@@ -2118,6 +2542,7 @@ function updateMenu() {
   const label = 'Âm thanh: ' + (audio.muted ? 'tắt' : 'bật');
   els.menuMute.textContent = label;
   if (els.acctLbl) els.acctLbl.textContent = acctLabel();
+  if (els.recPower) els.recPower.textContent = fmtInt(powerOf(d).total);
   els.muteBtn.textContent = audio.muted ? 'TẮT' : 'ÂM';
 }
 function toggleMute() {
@@ -2280,6 +2705,8 @@ function bind() {
       case 'shop': if (c === 'Escape' || c === 'Backspace') { if (dlg) closeDlg(); else closeShop(); } break;
       case 'acct': if (c === 'Escape') closeAcct(); break;
       case 'admin': if (c === 'Escape') closeAdmin(); break;
+      case 'board': if (c === 'Escape') closeBoard(); break;
+      case 'login': if (c === 'Escape') closeLink(); break;
       case 'levelup': {
         const n = c.indexOf('Digit') === 0 ? +c.slice(5) : c.indexOf('Numpad') === 0 ? +c.slice(6) : 0;
         if (n >= 1) chooseUpgrade(n - 1);
@@ -2353,11 +2780,13 @@ audio.muted = !!store.data.muted;
 resize();
 bind();
 initAccountUi();
+initAuthUi();
 updateMenu();
-showPanel('menu');
+if (!auth.on) showPanel('menu');
 window.__ns = () => ({ state, G, store, cloud });   // debug hook for automated checks
 requestAnimationFrame(t => { lastFrame = t; frame(t); });
-cloudStart();   // optional: signs in through the platform and syncs; the game runs without it
+if (auth.on) authStart();   // Firebase build: nobody reaches the menu without signing in
+else cloudStart();          // artifact build: optional platform account; the game runs without it
 })();
 </script>
 
