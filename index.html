@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Neon Survivor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -295,6 +296,7 @@ select.field option { color: #0b0716; background: #f3eeff; }
         <button class="btn ghost" id="shopBtn" type="button">Xưởng · <span class="cores" id="menuCores">0</span> Lõi</button>
         <button class="btn ghost" id="boardBtn" type="button">Xếp hạng</button>
         <button class="btn ghost" id="acctBtn" type="button">Tài khoản · <span id="acctLbl">Khách</span></button>
+        <button class="btn ghost" id="logoutBtn" type="button" hidden>Đăng xuất</button>
         <button class="btn ghost" id="menuMute" type="button">Âm thanh: bật</button>
       </div>
     </div>
@@ -463,6 +465,22 @@ select.field option { color: #0b0716; background: #f3eeff; }
     </div>
   </section>
 </main>
+<script>window.NS_GATE = true;</script>
+<script>
+/* Neon Survivor: Firebase settings (project neon-cfec8).
+   These values are not secrets: they only identify your Firebase project. What protects the data is firestore.rules. */
+window.NS_FIREBASE = {
+  apiKey: 'AIzaSyDektUC6gq3XllvBixI6XrV6f_U2CVcltg',
+  authDomain: 'neon-cfec8.firebaseapp.com',
+  projectId: 'neon-cfec8',
+  storageBucket: 'neon-cfec8.firebasestorage.app',
+  messagingSenderId: '596412355335',
+  appId: '1:596412355335:web:d2ccded3455fd9735faba2'
+};
+// The administrator sees the admin panel (edit Lõi, stats, skills) and can remove leaderboard entries.
+// This list only decides whether the buttons are shown. The same address must be in firestore.rules, which is what really enforces it.
+window.NS_ADMIN_EMAILS = ['hpmainho20@gmail.com'];
+</script>
 <script>
 (() => {
 'use strict';
@@ -1897,6 +1915,7 @@ async function cloudStart(C) {
 function refreshAcct() {
   if (!els.acctLbl) return;
   els.acctLbl.textContent = acctLabel();
+  authRender();
   if (state !== 'acct') return;
   renderAcct();
 }
@@ -2118,6 +2137,7 @@ async function authStart() {
 }
 function enterLogin() {   // nobody is signed in: show the gate
   auth.needLogin = false; auth.confirmOut = false;
+  menuNoteText = '';
   cloudReset();
   if (auth.was) { store.reset(); auth.was = false; }   // the next person on this device starts from nothing
   auth.mode = 'gate'; state = 'login';
@@ -2183,7 +2203,9 @@ function closeLink() {
   if (state !== 'login' || auth.mode !== 'link' || auth.busy) return;
   auth.mode = 'gate'; state = 'acct'; renderAcct(); showPanel('acct'); audio.play('ui');
 }
-function acctNote(t, bad) { els.acctNote.textContent = t || ''; els.acctNote.hidden = !t; els.acctNote.setAttribute && els.acctNote.setAttribute('data-bad', bad ? '1' : '0'); }
+function acctNote(t, bad) {
+  if (state === 'menu') { menuNoteText = t || ''; updateMenu(); return; }   // signing out from the main menu: the message goes on the menu
+  els.acctNote.textContent = t || ''; els.acctNote.hidden = !t; els.acctNote.setAttribute && els.acctNote.setAttribute('data-bad', bad ? '1' : '0'); }
 async function signOutFlow() {
   if (!auth.p || auth.busy || !cloud.ready) return;
   if (cloud.guest && !auth.confirmOut) { auth.confirmOut = true; authRender(); acctNote('Tài khoản khách sẽ mất cùng toàn bộ tiến trình khi đăng xuất. Hãy liên kết Google hoặc email trước, hoặc bấm lần nữa để đăng xuất.', true); return; }
@@ -2201,10 +2223,11 @@ function authRender() {   // account panel: the sign-in related buttons
   if (!els.signOutBtn) return;
   const fb = auth.on && !!auth.p && cloud.ready;
   els.signOutBtn.hidden = !fb;
-  els.signOutBtn.textContent = auth.confirmOut ? 'Xác nhận đăng xuất' : 'Đăng xuất';
+  els.logoutBtn.hidden = !fb;
+  els.signOutBtn.textContent = els.logoutBtn.textContent = auth.confirmOut ? 'Xác nhận đăng xuất' : 'Đăng xuất';
   els.linkBtn.hidden = !(fb && cloud.guest);
   els.verifyBtn.hidden = !(fb && !cloud.guest && cloud.provider === 'password' && !cloud.verified);
-  if (state !== 'acct') { auth.confirmOut = false; }
+  if (state !== 'acct' && state !== 'menu') { auth.confirmOut = false; }
 }
 
 /* ---------- Leaderboard (Bảng xếp hạng chiến lực) ----------
@@ -2270,7 +2293,7 @@ function closeBoard() { if (state !== 'board') return; state = 'menu'; updateMen
 
 function initAuthUi() {
   ['login', 'loginTitle', 'loginLead', 'loginGoogle', 'loginGuest', 'loginTabs', 'loginTabIn', 'loginTabUp', 'loginForm', 'loginNameRow', 'loginName', 'loginEmail', 'loginPass',
-   'loginSubmit', 'loginMsg', 'loginForgot', 'loginBack', 'loginOffline', 'signOutBtn', 'linkBtn', 'verifyBtn', 'acctNote',
+   'loginSubmit', 'loginMsg', 'logoutBtn', 'loginForgot', 'loginBack', 'loginOffline', 'signOutBtn', 'linkBtn', 'verifyBtn', 'acctNote',
    'board', 'boardMe', 'boardList', 'boardMsg', 'boardBack', 'boardRefresh', 'boardBtn', 'recPower'].forEach(id => { els[id] = $(id); });
   els.loginGoogle.addEventListener('click', () => authRun(() => (auth.mode === 'link' ? auth.p.linkGoogle() : auth.p.signInGoogle())));
   els.loginGuest.addEventListener('click', () => authRun(() => auth.p.signInGuest()));
@@ -2281,6 +2304,7 @@ function initAuthUi() {
   els.loginBack.addEventListener('click', () => closeLink());
   els.loginOffline.addEventListener('click', () => { if (state === 'login' && auth.failed) { state = 'menu'; updateMenu(); showPanel('menu'); } });   // Firebase not reachable: play on this device only
   els.signOutBtn.addEventListener('click', () => signOutFlow());
+  els.logoutBtn.addEventListener('click', () => { if (state === 'menu') signOutFlow(); });
   els.linkBtn.addEventListener('click', () => openLink());
   els.verifyBtn.addEventListener('click', () => verifyFlow());
   els.boardBtn.addEventListener('click', () => openBoard());
@@ -2789,5 +2813,128 @@ if (auth.on) authStart();   // Firebase build: nobody reaches the menu without s
 else cloudStart();          // artifact build: optional platform account; the game runs without it
 })();
 </script>
+<script type="module">
+/* Neon Survivor: Firebase bridge.
+   Loads the Firebase SDK, then offers the game one small object, window.NSAuth: sign-in actions plus a store with the same
+   shape the game already uses (use('db') / use('user')). The game never touches the SDK or a password itself.
+   Everything that can fail is reported as { ok: false, reason } so the sign-in screen can say what is wrong. */
+const VERSION = '10.14.1';
+const CDN = 'https://www.gstatic.com/firebasejs/' + VERSION + '/';
+const announce = v => { window.NSAuth = v; window.dispatchEvent(new Event('nsauth')); };
+const fail = reason => announce({ ok: false, reason });
 
+async function boot() {
+  const cfg = window.NS_FIREBASE;
+  if (!cfg || !cfg.apiKey || !cfg.projectId || /^(PASTE|YOUR)/i.test(cfg.apiKey) || /^(PASTE|YOUR)/i.test(cfg.projectId)) return fail('config');
+  let A, Au, F;
+  try {
+    const inj = window.NS_FIREBASE_SDK;   // tests inject a stand-in here; real pages load the official SDK
+    [A, Au, F] = inj ? [inj.app, inj.auth, inj.firestore] : await Promise.all([import(CDN + 'firebase-app.js'), import(CDN + 'firebase-auth.js'), import(CDN + 'firebase-firestore.js')]);
+  } catch (e) { return fail('sdk'); }
+  let auth, fs;
+  try { const app = A.initializeApp(cfg); auth = Au.getAuth(app); fs = F.getFirestore(app); } catch (e) { return fail('init'); }
+
+  const admins = (window.NS_ADMIN_EMAILS || []).map(s => String(s).trim().toLowerCase()).filter(Boolean);
+  const info = u => {
+    const email = String(u.email || '').toLowerCase(), pd = u.providerData || [];
+    return {
+      id: u.uid, name: u.displayName || '', email, emailVerified: !!u.emailVerified, guest: !!u.isAnonymous,
+      provider: u.isAnonymous ? 'anonymous' : pd.some(p => p.providerId === 'google.com') ? 'google' : 'password',
+      // Only shows the admin buttons. firestore.rules checks the verified e-mail again on every read and write.
+      admin: !!email && !!u.emailVerified && admins.includes(email)
+    };
+  };
+  const listeners = [];
+  let hold = 0;   // while a sign-up is still setting the display name, the half-finished account is not announced
+  const current = () => (auth.currentUser ? info(auth.currentUser) : null);
+  // Each listener hears about a state once: the same account is not announced twice, a changed name or provider is.
+  const deliver = l => { const c = current(), key = JSON.stringify(c); if (l.last === key) return; l.last = key; try { l.cb(c); } catch (e) { /* a listener must not break the others */ } };
+  const notify = () => { if (!hold) for (const l of listeners.slice()) deliver(l); };
+  Au.onAuthStateChanged(auth, notify);
+  // Coming back from a redirect sign-in (used only when the browser blocks pop-ups): the result arrives through onAuthStateChanged.
+  try { if (Au.getRedirectResult) Au.getRedirectResult(auth).catch(() => {}); } catch (e) { /* ignore */ }
+
+  const google = () => { const p = new Au.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' }); return p; };
+  const verifyQuietly = async u => { try { await Au.sendEmailVerification(u); } catch (e) { /* the player can ask again from the account screen */ } };
+  const refresh = async () => { try { await auth.currentUser.reload(); } catch (e) { /* ignore */ } notify(); };
+  const needUser = () => { if (!auth.currentUser) throw { code: 'auth/requires-recent-login' }; return auth.currentUser; };
+
+  /* ----- store with the platform's shape ----- */
+  const wrap = s => ({ id: s.id, exists: s.exists(), data: () => s.data() });
+  const fixErr = e => ({ code: e && e.code === 'permission-denied' ? 'denied' : (e && e.code) || 'error', message: e && e.message });
+  const call = async fn => { try { return await fn(); } catch (e) { throw fixErr(e); } };
+  const docRef = path => {
+    const r = F.doc(fs, path);
+    return {
+      id: r.id, path,
+      get: () => call(async () => wrap(await F.getDoc(r))),
+      set: data => call(() => F.setDoc(r, data)),
+      update: data => call(() => F.updateDoc(r, data)),
+      delete: () => call(() => F.deleteDoc(r)),
+      onSnapshot: (next, onErr) => F.onSnapshot(r, s => next(wrap(s)), e => { if (onErr) onErr(fixErr(e)); })
+    };
+  };
+  const collRef = (path, cons) => {
+    cons = cons || [];
+    const q = () => F.query(F.collection(fs, path), ...cons);
+    const pack = s => ({ docs: s.docs.map(wrap), size: s.size, empty: s.empty });
+    return {
+      path,
+      orderBy: (f, dir) => collRef(path, cons.concat([F.orderBy(f, dir || 'asc')])),
+      limit: n => collRef(path, cons.concat([F.limit(n)])),
+      get: () => call(async () => pack(await F.getDocs(q()))),
+      onSnapshot: (next, onErr) => F.onSnapshot(q(), s => next(pack(s)), e => { if (onErr) onErr(fixErr(e)); })
+    };
+  };
+  const db = { doc: docRef, collection: p => collRef(p) };
+  const user = {
+    me: async () => { const c = current(); return c ? Object.assign({ profile: true }, c) : null; },
+    canEdit: async () => !!(current() && current().admin),
+    isOwner: async () => !!(current() && current().admin),
+    can: async () => true   // whether a write is really allowed is decided by firestore.rules
+  };
+
+  announce({
+    ok: true,
+    platform: { use: async name => (name === 'db' ? db : name === 'user' ? user : null) },
+    onChange(cb) {
+      const l = { cb, last: undefined };
+      listeners.push(l);
+      const first = () => deliver(l);   // the stored session (or nobody) is reported once Firebase knows it
+      if (auth.authStateReady) auth.authStateReady().then(first, first); else setTimeout(first, 0);
+      return () => { const i = listeners.indexOf(l); if (i >= 0) listeners.splice(i, 1); };
+    },
+    async signInGoogle() {
+      try { await Au.signInWithPopup(auth, google()); }
+      catch (e) {
+        if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { await Au.signInWithRedirect(auth, google()); return new Promise(() => {}); }
+        throw e;
+      }
+    },
+    async signInGuest() { await Au.signInAnonymously(auth); },
+    async signUpEmail(name, email, pass) {
+      hold++;
+      try {
+        const cred = await Au.createUserWithEmailAndPassword(auth, email, pass);
+        if (name) { try { await Au.updateProfile(cred.user, { displayName: name }); } catch (e) { /* the name is optional */ } }
+        await verifyQuietly(cred.user);
+      } finally { hold--; }
+      await refresh();
+    },
+    async signInEmail(email, pass) { await Au.signInWithEmailAndPassword(auth, email, pass); },
+    async resetPassword(email) { try { await Au.sendPasswordResetEmail(auth, email); } catch (e) { if (!e || e.code !== 'auth/user-not-found') throw e; } },
+    async linkGoogle() { await Au.linkWithPopup(needUser(), google()); await refresh(); },
+    async linkEmail(name, email, pass) {
+      const u = needUser();
+      await Au.linkWithCredential(u, Au.EmailAuthProvider.credential(email, pass));
+      if (name) { try { await Au.updateProfile(u, { displayName: name }); } catch (e) { /* optional */ } }
+      await verifyQuietly(u);
+      await refresh();
+    },
+    async sendVerification() { await Au.sendEmailVerification(needUser()); },
+    async signOut() { await Au.signOut(auth); }
+  });
+}
+boot().catch(() => fail('init'));
+</script>
 </body></html>
